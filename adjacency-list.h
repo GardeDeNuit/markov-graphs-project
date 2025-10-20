@@ -9,9 +9,14 @@
 #include <stdlib.h>
 #include "list.h"
 
-typedef t_list* adjacency_list;
+struct s_adjacency_list {
+    t_list* values;
+    int size;
+};
+typedef struct s_adjacency_list t_adjacency_list;
 
-adjacency_list createEmptyAdjacencyList(int);
-void displayAdjacencyList(adjacency_list, int);
+t_adjacency_list createEmptyAdjacencyList(int);
+void displayAdjacencyList(t_adjacency_list);
+t_adjacency_list readGraph(const char*);
 
 #endif //ADJACENCY_LIST_H
