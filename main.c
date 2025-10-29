@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "adjacency-list.h"
+#include "graph.h"
 
 int main() {
     // Test affichage liste remplie
@@ -30,6 +30,8 @@ int main() {
     printf("\n");
 
     printf("Test affichage liste adjacente depuis fichier :\n");
-    t_adjacency_list alist2 = readGraph("C:/Users/matte/dev/markov-graphs-project/data/exemple1.txt");
-    displayAdjacencyList(alist2);
+    t_graph graph2 = readGraphFromFile("C:/Users/matte/dev/markov-graphs-project/data/exemple1.txt");
+    displayGraph(graph2);
+    addEdge(&graph2, 1, 2, 0.1);
+    displayGraph(graph2);
 }
