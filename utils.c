@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "utils.h"
 
-static char *getID(int i)
+char *getID(int i)
 {
     // translate from 1,2,3, .. ,500+ to A,B,C,..,Z,AA,AB,...
     static char buffer[10];
@@ -26,4 +27,12 @@ static char *getID(int i)
     buffer[index] = '\0';
 
     return buffer;
+}
+
+int validateIntRange(int value, int min, int max, const char *errMsg) {
+    if (value < min || value > max) {
+        if (errMsg) fprintf(stderr, "%s\n", errMsg);
+        return 0;
+    }
+    return 1;
 }
