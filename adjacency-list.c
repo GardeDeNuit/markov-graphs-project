@@ -25,38 +25,3 @@ void displayAdjacencyList(t_adjacency_list alist) {
         displayList(alist.values[i]);
     }
 }
-
-int testcreateEmptyAdjacencyList(void) {
-    return 1;
-}
-
-
-t_adjacency_list readGraph(const char *filename) {
-    FILE *file = fopen(filename, "rt"); // read-only, text
-    int nbvert, depart, arrivee;
-    float proba;
-    t_adjacency_list alist;
-    if (file==NULL)
-    {
-        perror("Could not open file for reading");
-        exit(EXIT_FAILURE);
-    }
-
-    // first line contains number of vertices
-    if (fscanf(file, "%d", &nbvert) != 1)
-    {
-        perror("Could not read number of vertices");
-        exit(EXIT_FAILURE);
-    }
-
-    alist = createEmptyAdjacencyList(nbvert);
-
-    while (fscanf(file, "%d %d %f", &depart, &arrivee, &proba) == 3)
-    {
-        // on obtient, pour chaque ligne du fichier les valeurs
-        // depart, arrivee, et proba
-        addCell(&alist.values[depart - 1], arrivee, proba);
-      }
-    fclose(file);
-    return alist;
-}

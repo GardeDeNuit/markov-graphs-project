@@ -17,6 +17,5 @@ typedef struct s_adjacency_list t_adjacency_list;
 
 t_adjacency_list createEmptyAdjacencyList(int);
 void displayAdjacencyList(t_adjacency_list);
-t_adjacency_list readGraph(const char*);
 
 #endif //ADJACENCY_LIST_H
