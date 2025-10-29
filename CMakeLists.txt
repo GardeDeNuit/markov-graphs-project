@@ -14,6 +14,7 @@ add_executable(TI_301_PJT
         adjacency-list.c
         adjacency-list.h
         graph.c
-        graph.h)
+        graph.h
+        utils.c)
 
 
