@@ -17,5 +17,7 @@ typedef struct s_cell t_cell;
 t_cell* createCell(int, double);
 void displayCell(t_cell);
 
-#endif //CELL_H
+// Libère une cellule (attend un pointeur sur la cellule)
+void freeCell(t_cell*);
 
+#endif //CELL_H
