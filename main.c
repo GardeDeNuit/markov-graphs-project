@@ -1,37 +1,79 @@
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "list.h"
+#include "adjacency-list.h"
 #include "graph.h"
 
-int main() {
-    // Test affichage liste remplie
-    printf("Test affichage liste remplie :\n");
-    t_list list = createEmptyList();
-    addCell(&list,5,0.8);
-    addCell(&list,2,0.4);
-    addCell(&list,1,1);
-    addCell(&list,8,0.982);
-    displayList(list);
-    printf("\n");
+static void print_result(const char* name, int ok) {
+    printf("%s: %s\n", name, ok ? "PASS" : "FAIL");
+}
 
-    // Test affichage liste vide
-    printf("Test affichage liste vide :\n");
-    t_list list2 = createEmptyList();
-    displayList(list2);
-    printf("\n");
+// Test basique de la liste chaînée
+static int test_list_basic(void) {
+    t_list l = createEmptyList();
+    if (l.head != NULL) return 1;
+    addCell(&l, 3, 1.5);
+    if (l.head == NULL) { freeList(&l); return 1; }
+    if (l.head->vertex != 3) { freeList(&l); return 1; }
+    freeList(&l);
+    if (l.head != NULL) return 1;
+    return 0;
+}
 
-    printf("Test affichage liste adjacente :\n");
-    int alist_size = 10;
-    t_adjacency_list alist = createEmptyAdjacencyList(alist_size);
-    displayAdjacencyList(alist);
-    addCell(&alist.values[0], 0, 0.2);
-    addCell(&alist.values[0], 1, 0.3);
-    addCell(&alist.values[1], 2, 0.4);
-    displayAdjacencyList(alist);
-    printf("\n");
+// Test basique de la liste d'adjacence
+static int test_adjacency_basic(void) {
+    t_adjacency_list al = createEmptyAdjacencyList(3);
+    if (al.size != 3) return 1;
+    if (al.values == NULL) { freeAdjacencyList(&al); return 1; }
+    freeAdjacencyList(&al);
+    if (al.values != NULL) return 1;
+    return 0;
+}
 
-    printf("Test affichage liste adjacente depuis fichier :\n");
-    t_graph graph2 = readGraphFromFile("C:/Users/matte/dev/markov-graphs-project/data/exemple1.txt");
-    displayGraph(graph2);
-    addEdge(&graph2, 1, 2, 0.1);
-    displayGraph(graph2);
+// Test basique du graphe (ajout, recherche, suppression)
+static int test_graph_edges(void) {
+    t_graph g = createGraph(4);
+    addEdge(&g, 1, 2, 0.5);
+    if (!hasEdge(g, 1, 2)) { freeGraph(&g); return 1; }
+    t_list* neigh = getNeighbors(&g, 1);
+    if (neigh == NULL) { freeGraph(&g); return 1; }
+    if (neigh->head == NULL) { freeGraph(&g); return 1; }
+    if (neigh->head->vertex != 2) { freeGraph(&g); return 1; }
+    freeGraph(&g);
+    return 0;
+}
+
+// Test lecture depuis fichier (chemin relatif géré par readGraphFromFile)
+static int test_read_from_file(void) {
+    t_graph g = readGraphFromFile("C:/Users/matte/dev/markov-graphs-project/data/exemple1.txt");
+    int ok = 0;
+    if (g.size == 4 && hasEdge(g, 1, 2) && hasEdge(g, 4, 1)) ok = 1;
+    freeGraph(&g);
+    return ok ? 0 : 1;
+}
+
+int main(void) {
+    int failures = 0;
+
+    int r;
+
+    r = test_list_basic();
+    print_result("test_list_basic", r == 0);
+    failures += r;
+
+    r = test_adjacency_basic();
+    print_result("test_adjacency_basic", r == 0);
+    failures += r;
+
+    r = test_graph_edges();
+    print_result("test_graph_edges", r == 0);
+    failures += r;
+
+    r = test_read_from_file();
+    print_result("test_read_from_file", r == 0);
+    failures += r;
+
+    printf("Summary: %d tests failed\n", failures);
+    return failures;
 }
