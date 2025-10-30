@@ -14,5 +14,6 @@ typedef struct s_list {
 t_list createEmptyList();
 void displayList(t_list);
 void addCell(t_list*, int, double);
+void freeList(t_list*);
 
 #endif //LIST_H

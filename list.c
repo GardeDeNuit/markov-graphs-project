@@ -12,7 +12,17 @@ t_list createEmptyList(){
 
 void addCell(t_list *ptr_list, int vertex, double weight)
 {
+    if (ptr_list == NULL) {
+        fprintf(stderr, "addCell: ptr_list is NULL\n");
+        return;
+    }
+
     t_cell *cell = createCell(vertex, weight);
+    if (cell == NULL) {
+        // createCell already printed an error
+        return;
+    }
+
     cell->next = ptr_list->head;
     ptr_list->head= cell;
 }
@@ -29,5 +39,13 @@ void displayList(t_list list) {
     printf("\n");
 }
 
-
-
+void freeList(t_list* list) {
+    if (list == NULL) return;
+    t_cell* curr = list->head;
+    while (curr != NULL) {
+        t_cell* next = curr->next;
+        freeCell(curr);
+        curr = next;
+    }
+    list->head = NULL;
+}
