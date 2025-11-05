@@ -28,5 +28,6 @@ void freeGraph(t_graph *graph);
 // Lit un graphe à partir d'un fichier
 t_graph readGraphFromFile(const char* path);
 
+int is_graphMarkov(t_graph);
 
 #endif //GRAPH_H

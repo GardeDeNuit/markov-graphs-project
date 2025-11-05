@@ -49,3 +49,13 @@ void freeList(t_list* list) {
     }
     list->head = NULL;
 }
+
+double sumValues(t_list list){
+    t_cell* curr = list.head;
+    double sum = 0.00;
+    while (curr != NULL){
+        sum += curr->weight;
+        curr = curr->next;
+    }
+    return sum;
+}

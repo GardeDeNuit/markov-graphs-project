@@ -110,3 +110,21 @@ t_graph readGraphFromFile(const char* path) {
     fclose(file);
     return graph;
 }
+
+int is_graphMarkov(t_graph graph){
+    double sum = 0.00;
+    int isMarkov = 1;
+    for (int i=0;i<graph.size;i++){
+        sum = sumValues(graph.values[i]);
+        if (sum < 0.99 || sum > 1.00) {
+            if (isMarkov) printf("Le graphe n'est pas un graphe de Markov.\n");
+            printf("La somme des probabilités du sommet %d est %.5f\n", i+1, sum);
+            isMarkov = 0;
+        }
+    }
+
+    if (isMarkov == 1) {
+        printf("Le graphe est un graphe de Markov.\n");
+    }
+    return isMarkov;
+}

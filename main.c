@@ -46,11 +46,30 @@ static int test_graph_edges(void) {
 
 // Test lecture depuis fichier (chemin relatif géré par readGraphFromFile)
 static int test_read_from_file(void) {
-    t_graph g = readGraphFromFile("C:/Users/matte/dev/markov-graphs-project/data/exemple1.txt");
+    t_graph g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1.txt");
     int ok = 0;
     if (g.size == 4 && hasEdge(g, 1, 2) && hasEdge(g, 4, 1)) ok = 1;
     freeGraph(&g);
     return ok ? 0 : 1;
+}
+
+// Test probabilités sommets d'un graphe
+static int test_sum_list(void){
+    t_list l = createEmptyList();
+    if (sumValues(l)!=0) {return 1;}
+    addCell(&l, 1, 1);
+    if (sumValues(l)!=1) {return 1;}
+    addCell(&l, 2, 0.60);
+    if (sumValues(l)!=1.60) {return 1;}
+    return 0;
+}
+static int test_isMarkov_graph(void){
+    t_graph g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1_from_chatGPT.txt");
+    if (is_graphMarkov(g)!=0) {return 1;}
+
+    g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1.txt");
+    if (is_graphMarkov(g)!=1) {return 1;}
+    return 0;
 }
 
 int main(void) {
@@ -72,6 +91,14 @@ int main(void) {
 
     r = test_read_from_file();
     print_result("test_read_from_file", r == 0);
+    failures += r;
+
+    r = test_sum_list();
+    print_result("test_sum_list",r==0);
+    failures += r;
+
+    r = test_isMarkov_graph();
+    print_result("test_isMarkov_graph",r==0);
     failures += r;
 
     printf("Summary: %d tests failed\n", failures);
