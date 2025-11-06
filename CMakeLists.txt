@@ -9,4 +9,6 @@ add_executable(TI_301_PJT
         list.c
         adjacency-list.c
         graph.c
-        utils.c)
+        utils.c
+        mermaidchart-file-generator.c
+        mermaidchart-file-generator.h)
