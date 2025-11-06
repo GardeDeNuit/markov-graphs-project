@@ -4,6 +4,7 @@
 #include "list.h"
 #include "adjacency-list.h"
 #include "graph.h"
+#include "mermaidchart-file-generator.h"
 
 static void print_result(const char* name, int ok) {
     printf("%s: %s\n", name, ok ? "PASS" : "FAIL");

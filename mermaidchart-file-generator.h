@@ -7,7 +7,11 @@
 
 #include "graph.h"
 
-int exportGraphToMermaidFile(t_graph, const char*, const char*);
-void createEntry(int, int, double, FILE*);
+int exportGraphToMermaidFile(t_graph graph, const char* path);
+void appendVertex(int vertex, FILE *file);
+void appendGraphVertexes(t_graph graph, FILE *file);
+void appendEdge(int src, int dest, double weight, FILE *file);
+void appendGraphEdges(t_graph graph, FILE *file);
+
 
 #endif //MERMAIDCHART_FILE_GENERATOR_H
