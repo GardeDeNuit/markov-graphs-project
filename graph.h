@@ -2,8 +2,6 @@
 #define GRAPH_H
 
 #include "adjacency-list.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 typedef t_adjacency_list t_graph;
 
