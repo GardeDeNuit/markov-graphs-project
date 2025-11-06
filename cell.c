@@ -1,7 +1,3 @@
-//
-// Created on 20/10/2025.
-//
-
 #include "cell.h"
 
 t_cell * createCell(int vertex, double weight) {

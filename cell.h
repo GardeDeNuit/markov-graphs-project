@@ -1,7 +1,3 @@
-//
-// Created by matteo on 20/10/2025.
-//
-
 #ifndef CELL_H
 #define CELL_H
 #include <stdio.h>
