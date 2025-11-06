@@ -111,10 +111,7 @@ t_graph importGraphFromFile(const char* path) {
     return graph;
 }
 
-// Converti un graph en un fichier
-const char* exportGraphToFile(t_graph, graph_name) {
 
-}
 
 int is_graphMarkov(t_graph graph){
     double sum = 0.00;
