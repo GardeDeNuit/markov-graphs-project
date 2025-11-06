@@ -1,1 +1,1 @@
-# markov-graphs-projectrge
+# markov-graphs-project
