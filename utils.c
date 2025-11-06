@@ -1,8 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
 #include "utils.h"
 
 char *getID(int i)
@@ -34,15 +30,5 @@ int validateIntRange(int value, int min, int max, const char *errMsg) {
         if (errMsg) fprintf(stderr, "%s\n", errMsg);
         return 0;
     }
-    return 1;
-}
-
-int createFile(const char *path) {
-    FILE *file = fopen(path, "w");
-    if (file == NULL) {
-        fprintf(stderr, "createFile: Could not create file %s: %s\n", path, strerror(errno));
-        return 0;
-    }
-    fclose(file);
     return 1;
 }
