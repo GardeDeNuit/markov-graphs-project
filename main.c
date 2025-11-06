@@ -44,9 +44,9 @@ static int test_graph_edges(void) {
     return 0;
 }
 
-// Test lecture depuis fichier (chemin relatif géré par readGraphFromFile)
+// Test lecture depuis fichier (chemin relatif géré par importGraphFromFile)
 static int test_read_from_file(void) {
-    t_graph g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1.txt");
+    t_graph g = importGraphFromFile(".\\data\\exemple1.txt");
     int ok = 0;
     if (g.size == 4 && hasEdge(g, 1, 2) && hasEdge(g, 4, 1)) ok = 1;
     freeGraph(&g);
@@ -64,10 +64,10 @@ static int test_sum_list(void){
     return 0;
 }
 static int test_isMarkov_graph(void){
-    t_graph g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1_from_chatGPT.txt");
+    t_graph g = importGraphFromFile(".\\data\\exemple1_from_chatGPT.txt");
     if (is_graphMarkov(g)!=0) {return 1;}
 
-    g = readGraphFromFile("C:\\Users\\Louis\\OneDrive - Efrei\\Documents\\S2\\Complexité\\TP\\markov-graphs-project\\data\\exemple1.txt");
+    g = importGraphFromFile(".\\data\\exemple1.txt");
     if (is_graphMarkov(g)!=1) {return 1;}
     return 0;
 }
