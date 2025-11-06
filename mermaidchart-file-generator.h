@@ -8,6 +8,6 @@
 #include "graph.h"
 
 int exportGraphToMermaidFile(t_graph, const char*);
-const char* createEntry(int, int, double);
+void createEntry(int, int, double, FILE*);
 
 #endif //MERMAIDCHART_FILE_GENERATOR_H

@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "utils.h"
 
 int exportGraphToMermaidFile(t_graph graph, const char* path) {
     return 1;
 }
-const char* createEntry(int src, int dest, double weight) {
-
-    return "A -->|0.01|C";
+void createEntry(int src, int dest, double weight, FILE* file) {
+    fprintf(file,"%s -->|%.5f|%s\n", getID(src), weight, getID(dest));
 }
