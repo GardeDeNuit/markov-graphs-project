@@ -1,7 +1,3 @@
-//
-// Created by matteo on 20/10/2025.
-//
-
 #include "list.h"
 
 t_list createEmptyList(){
