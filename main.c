@@ -1,8 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-#include "list.h"
-#include "adjacency-list.h"
 #include "graph.h"
 #include "mermaidchart-file-generator.h"
 
@@ -74,8 +70,11 @@ static int test_isMarkov_graph(void){
 }
 
 int main(void) {
-    int failures = 0;
+    t_graph g = importGraphFromFile(".\\data\\exemple_valid_step3.txt");
+    displayGraph(g);
+    exportGraphToMermaidFile(g, ".\\data\\output.txt");
 
+    int failures = 0;
     int r;
 
     r = test_list_basic();
