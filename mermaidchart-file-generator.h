@@ -1,7 +1,3 @@
-//
-// Created by matteo on 06/11/2025.
-//
-
 #ifndef MERMAIDCHART_FILE_GENERATOR_H
 #define MERMAIDCHART_FILE_GENERATOR_H
 
