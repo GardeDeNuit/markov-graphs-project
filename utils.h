@@ -9,4 +9,6 @@ int validateIntRange(int value, int min, int max, const char *errMsg);
 // Utilitaire existant : obtient un identifiant (A,B,...)
 char *getID(int i);
 
+int createFile(const char*);
+
 #endif
