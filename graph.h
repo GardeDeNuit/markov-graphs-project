@@ -26,7 +26,7 @@ t_list* getNeighbors(t_graph *graph, int src);
 void freeGraph(t_graph *graph);
 
 // Lit un graphe à partir d'un fichier
-t_graph readGraphFromFile(const char* path);
+t_graph importGraphFromFile(const char* path);
 
 int is_graphMarkov(t_graph);
 

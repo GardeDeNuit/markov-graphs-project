@@ -74,41 +74,46 @@ void freeGraph(t_graph *graph) {
 }
 
 // Lit un graphe à partir d'un fichier
-t_graph readGraphFromFile(const char* path) {
+t_graph importGraphFromFile(const char* path) {
     FILE *file = fopen(path, "rt"); // read-only, text
     int nbvert, src, dest;
     double weight;
     t_graph graph;
     if (file==NULL){
-        perror("readGraphFromFile: Could not open file for reading");
-        return createEmptyAdjacencyList(1);
+        perror("importGraphFromFile: Could not open file for reading");
+        return createGraph(1);
     }
 
     // first line contains number of vertices
     if (fscanf(file, "%d", &nbvert) != 1){
-        fprintf(stderr, "readGraphFromFile: Could not read number of vertices from %s\n", path);
+        fprintf(stderr, "importGraphFromFile: Could not read number of vertices from %s\n", path);
         fclose(file);
-        return createEmptyAdjacencyList(1);
+        return createGraph(1);
     }
 
     // valider le nombre de sommets lu
     if (nbvert < 1) {
-        fprintf(stderr, "readGraphFromFile: invalid number of vertices (%d) in %s\n", nbvert, path);
+        fprintf(stderr, "importGraphFromFile: invalid number of vertices (%d) in %s\n", nbvert, path);
         fclose(file);
-        return createEmptyAdjacencyList(1);
+        return createGraph(1);
     }
 
-    graph = createEmptyAdjacencyList(nbvert);
+    graph = createGraph(nbvert);
 
     while (fscanf(file, "%d %d %lf", &src, &dest, &weight) == 3){
         if (src < 1 || src > graph.size || dest < 1 || dest > graph.size) {
-            fprintf(stderr, "readGraphFromFile: edge with invalid vertices (%d -> %d) ignored\n", src, dest);
+            fprintf(stderr, "importGraphFromFile: edge with invalid vertices (%d -> %d) ignored\n", src, dest);
             continue;
         }
         addEdge(&graph, src, dest, weight);
     }
     fclose(file);
     return graph;
+}
+
+// Converti un graph en un fichier
+const char* exportGraphToFile(t_graph, graph_name) {
+
 }
 
 int is_graphMarkov(t_graph graph){
