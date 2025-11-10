@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "graph.h"
 #include "mermaidchart-file-generator.h"
+#include "utils.h"
+#include "partition.h"
 
 static void print_result(const char* name, int ok) {
     printf("%s: %s\n", name, ok ? "PASS" : "FAIL");
@@ -60,12 +62,32 @@ static int test_sum_list(void){
     if (sumValues(l)!=1.60) {return 1;}
     return 0;
 }
+
 static int test_isMarkov_graph(void){
     t_graph g = importGraphFromFile("../data/exemple1_from_chatGPT.txt");
     if (is_graphMarkov(g)!=0) {return 1;}
 
     g = importGraphFromFile("../data/exemple1.txt");
     if (is_graphMarkov(g)!=1) {return 1;}
+    return 0;
+}
+
+static int test_partition(void) {
+    t_partition *part = createPartition();
+    if (part == NULL) return 1;
+    t_class *class1 = createClass("C1");
+    addClassToPartition(part, class1);
+    if (part->classes == NULL) {
+        freePartition(part);
+        return 1;
+    }
+    t_class *class2 = createClass("C2");
+    addClassToPartition(part, class2);
+    if (part->classes->next == NULL) {
+        freePartition(part);
+        return 1;
+    }
+    freePartition(part);
     return 0;
 }
 
@@ -99,6 +121,10 @@ int main(void) {
 
     r = test_isMarkov_graph();
     print_result("test_isMarkov_graph",r==0);
+    failures += r;
+
+    r = test_partition();
+    print_result("test_partition", r == 0);
     failures += r;
 
     printf("Summary: %d tests failed\n", failures);
