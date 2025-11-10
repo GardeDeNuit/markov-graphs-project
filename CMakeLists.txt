@@ -11,4 +11,12 @@ add_executable(TI_301_PJT
         graph.c
         utils.c
         mermaidchart-file-generator.c
-        mermaidchart-file-generator.h)
+        mermaidchart-file-generator.h
+        tarjan_vertex.c
+        tarjan_vertex.h
+        class.c
+        class.h
+        partition.c
+        partition.h
+        tarjan.c
+        tarjan.h)
