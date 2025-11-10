@@ -7,7 +7,7 @@ t_partition * createPartition(){
 }
 
 void freeClasses(t_class *class){
-    if (class->next == NULL){
+    if (class == NULL){
         return;
     }
     freeClasses(class->next);
