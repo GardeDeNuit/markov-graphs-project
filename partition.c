@@ -24,3 +24,10 @@ void addClassToPartition(t_partition *partition, t_class *class){
     partition->classes = class;
 }
 
+void displayPartition(t_partition *partition){
+    if (partition == NULL) return;
+    while (partition->classes != NULL) {
+        displayClass(partition->classes);
+        partition->classes = partition->classes->next;
+    }
+}

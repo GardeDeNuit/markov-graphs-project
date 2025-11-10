@@ -11,4 +11,5 @@ t_partition * createPartition();
 void freeClasses(t_class *);
 void freePartition(t_partition *);
 void addClassToPartition(t_partition *, t_class *);
+void displayPartition(t_partition *);
 #endif //PARTITION_H
