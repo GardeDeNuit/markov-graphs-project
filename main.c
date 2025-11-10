@@ -3,6 +3,7 @@
 #include "mermaidchart-file-generator.h"
 #include "utils.h"
 #include "partition.h"
+#include <string.h>
 
 static void print_result(const char* name, int ok) {
     printf("%s: %s\n", name, ok ? "PASS" : "FAIL");
@@ -83,12 +84,32 @@ static int test_partition(void) {
     }
     t_class *class2 = createClass("C2");
     addClassToPartition(part, class2);
+    displayPartition(part);
     if (part->classes->next == NULL) {
         freePartition(part);
         return 1;
     }
     freePartition(part);
     return 0;
+}
+
+int test_class() {
+    int errors = 0;
+
+    t_class *c = createClass("Test");
+    if (c == NULL) return 1;
+    if (strcmp(c->name, "Test") != 0) {
+        errors++;
+    }
+    addVertexToClass(c, 1);
+    addVertexToClass(c, 2);
+    addVertexToClass(c, 3);
+    // La liste doit être : 3 -> 2 -> 1
+    if (c->vertexes == NULL || c->vertexes->value != 3) errors++;
+    if (c->vertexes->next == NULL || c->vertexes->next->value != 2) errors++;
+    if (c->vertexes->next->next == NULL || c->vertexes->next->next->value != 1) errors++;
+    freeClass(c);
+    return errors;
 }
 
 int main(void) {
@@ -125,6 +146,10 @@ int main(void) {
 
     r = test_partition();
     print_result("test_partition", r == 0);
+    failures += r;
+
+    r = test_class();
+    print_result("test_class", r == 0);
     failures += r;
 
     printf("Summary: %d tests failed\n", failures);
