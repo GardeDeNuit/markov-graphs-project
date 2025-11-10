@@ -10,8 +10,9 @@ typedef struct s_class {
 } t_class;
 
 t_class* createClass(const char *);
-void addVertexToClass(t_class , t_tarjan_vertex *);
+void addVertexToClass(t_class *, t_tarjan_vertex *);
 void displayClass(t_class *);
+void freeVertexes(t_tarjan_vertex*);
 void freeClass(t_class *);
 
 #endif //CLASS_H
