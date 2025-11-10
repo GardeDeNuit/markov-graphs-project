@@ -7,8 +7,8 @@ typedef struct s_partition{
     t_class *classes;
 } t_partition;
 
-void createPartition();
+t_partition * createPartition();
+void freeClasses(t_class *);
 void freePartition(t_partition *);
 void addClassToPartition(t_partition *, t_class *);
-
 #endif //PARTITION_H
