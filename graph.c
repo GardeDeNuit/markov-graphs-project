@@ -1,13 +1,40 @@
 #include "graph.h"
 
+// Crée un graphe vide de la taille 0 et de valeurs NULL
+t_graph createEmptyGraph(void) {
+    t_graph graph = { .values = NULL, .size = 0 };
+    return graph;
+}
+
 // Crée un graphe vide de la taille donnée
 t_graph createGraph(int size) {
-    return createEmptyAdjacencyList(size);
+    t_graph graph = createEmptyGraph();
+
+    if (size < MIN_SIZE_GRAPH) {
+        fprintf(stderr, "createGraph: size must be >= %d (got %d)\n", MIN_SIZE_GRAPH, size);
+        return graph;
+    }
+
+    graph.values = malloc((size_t)size * sizeof *graph.values);
+    if (graph.values == NULL) {
+        perror("createGraph: allocation failed");
+        return graph;
+    }
+
+    graph.size = size;
+    for (int i = 0; i < size; ++i) {
+        graph.values[i] = createEmptyList();
+    }
+
+    return graph;
 }
 
 // Affiche le graphe
 void displayGraph(t_graph graph) {
-    displayAdjacencyList(graph);
+    for (int i = 0; i < graph.size; i++) {
+        printf("List of vertex %d: ", i + 1);
+        displayList(graph.values[i]);
+    }
 }
 
 // Ajoute une arête directed src -> dest avec un poids
@@ -66,7 +93,16 @@ int hasEdge(t_graph graph, int src, int dest) {
 // Libère toute la mémoire associée au graphe
 void freeGraph(t_graph *graph) {
     if (graph == NULL) return;
-    freeAdjacencyList(graph);
+    if (graph->values == NULL) {
+        graph->size = 0;
+        return;
+    }
+    for (int i = 0; i < graph->size; ++i) {
+        freeList(&graph->values[i]);
+    }
+    free(graph->values);
+    graph->values = NULL;
+    graph->size = 0;
 }
 
 // Lit un graphe à partir d'un fichier
@@ -77,21 +113,21 @@ t_graph importGraphFromFile(const char* path) {
     t_graph graph;
     if (file==NULL){
         perror("importGraphFromFile: Could not open file for reading");
-        return createGraph(1);
+        return createEmptyGraph();
     }
 
     // first line contains number of vertices
     if (fscanf(file, "%d", &nbvert) != 1){
         fprintf(stderr, "importGraphFromFile: Could not read number of vertices from %s\n", path);
         fclose(file);
-        return createGraph(1);
+        return createEmptyGraph();
     }
 
     // valider le nombre de sommets lu
     if (nbvert < 1) {
         fprintf(stderr, "importGraphFromFile: invalid number of vertices (%d) in %s\n", nbvert, path);
         fclose(file);
-        return createGraph(1);
+        return createEmptyGraph();
     }
 
     graph = createGraph(nbvert);
@@ -106,8 +142,6 @@ t_graph importGraphFromFile(const char* path) {
     fclose(file);
     return graph;
 }
-
-
 
 int is_graphMarkov(t_graph graph){
     double sum = 0.00;

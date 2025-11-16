@@ -1,9 +1,21 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "adjacency-list.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "list.h"
 
-typedef t_adjacency_list t_graph;
+#define MIN_SIZE_GRAPH 1
+
+struct s_graph {
+    t_list* values;
+    int size;
+};
+typedef struct s_graph t_graph;
+
+
+// Crée un graphe vide de la taille 0 et de valeurs NULL
+t_graph createEmptyGraph(void);
 
 // Crée un graphe vide de la taille donnée
 t_graph createGraph(int size);
@@ -27,5 +39,6 @@ void freeGraph(t_graph *graph);
 t_graph importGraphFromFile(const char* path);
 
 int is_graphMarkov(t_graph);
+
 
 #endif //GRAPH_H
