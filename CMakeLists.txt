@@ -7,16 +7,11 @@ add_executable(TI_301_PJT
         main.c
         cell.c
         list.c
-        adjacency-list.c
         graph.c
         utils.c
         mermaidchart-file-generator.c
-        mermaidchart-file-generator.h
         tarjan_vertex.c
-        tarjan_vertex.h
         class.c
-        class.h
         partition.c
-        partition.h
         tarjan.c
-        tarjan.h)
+        tests.c)
