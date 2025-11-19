@@ -68,3 +68,11 @@ void freeStack(t_stack *stack) {
     freeStackCells(stack->top);
     free(stack);
 }
+
+int min(int a, int b) {
+    return (a < b) ? a : b;
+}
+
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}

@@ -23,5 +23,7 @@ void pushStack(t_stack *, int);
 int popStack(t_stack *);
 void FreeStackCells(t_stack_cell *);
 void freeStack(t_stack *);
+int min(int a, int b);
+int max(int a, int b);
 
 #endif
