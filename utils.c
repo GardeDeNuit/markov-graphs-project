@@ -85,3 +85,8 @@ char *intToStr(int value) {
     snprintf(buffer, sizeof(buffer), "%d", value);
     return buffer;
 }
+
+void debugPrint(int isDebugMode, const char *msg) {
+    if (!isDebugMode) return;
+    printf("[DEBUG] %s\n", msg);
+}

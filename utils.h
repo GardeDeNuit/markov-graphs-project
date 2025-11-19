@@ -30,5 +30,6 @@ void freeStack(t_stack *);
 int minInt(int, int);
 int maxInt(int, int);
 char *intToStr(int);
+void debugPrint(int isDebugMode, const char *msg);
 
 #endif
