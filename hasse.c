@@ -86,7 +86,7 @@ void addLink(*link_array,dept,dest) {
     link_array->log_size++;
 }
 
-void createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
+int createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
 //fonction qui permet de creer le diagramme de hasse
 
 {
@@ -116,5 +116,5 @@ void createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
     // Enleve les redonances
     removeTransitiveLinks(class_links);
 
-    free(class_array);
+    return class_array;
 }
