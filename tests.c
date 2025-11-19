@@ -258,6 +258,104 @@ int test_partition_complete_scenario() {
     return 0; // Scénario complet sans crash
 }
 
+// Tests pour tarjan_vertex.c
+int test_createTarjanVertex_normal() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 5, 3, 1);
+    int result = (vertex != NULL && vertex->id == 1 && vertex->num == 5 &&
+                  vertex->num_accessible == 3 && vertex->in_pile == 1 && vertex->next == NULL) ? 0 : 1;
+    freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_invalid_in_pile() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 5, 3, 2); // in_pile invalide
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_negative_values() {
+    t_tarjan_vertex *vertex = createTarjanVertex(-1, -5, -3, 0);
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_negative_id() {
+    t_tarjan_vertex *vertex = createTarjanVertex(-5, 10, 5, 1);
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_displayTarjanVertex_normal() {
+    t_tarjan_vertex vertex;
+    vertex.id = 42;
+    vertex.num = 10;
+    vertex.num_accessible = 5;
+    vertex.in_pile = 1;
+    vertex.next = NULL;
+
+    printf("Affichage attendu: (42, 10, 5, 1)\n");
+    displayTarjanVertex(vertex);
+    printf("\n");
+    return 0; // Test visuel
+}
+
+int test_displayTarjanVertex_zero_values() {
+    t_tarjan_vertex vertex;
+    vertex.id = 0;
+    vertex.num = 0;
+    vertex.num_accessible = 0;
+    vertex.in_pile = 0;
+    vertex.next = NULL;
+
+    printf("Affichage attendu: (0, 0, 0, 0)\n");
+    displayTarjanVertex(vertex);
+    printf("\n");
+    return 0; // Test visuel
+}
+
+int test_freeTarjanVertex_normal() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 2, 3, 0);
+    freeTarjanVertex(vertex);
+    return 0; // Pas de crash = succès
+}
+
+int test_freeTarjanVertex_null() {
+    freeTarjanVertex(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_tarjan_vertex_complete_scenario() {
+    // Créer plusieurs vertices Tarjan
+    t_tarjan_vertex *v1 = createTarjanVertex(1, 1, 1, 1);
+    t_tarjan_vertex *v2 = createTarjanVertex(2, 2, 1, 1);
+    t_tarjan_vertex *v3 = createTarjanVertex(3, 3, 3, 0);
+
+    if (!v1 || !v2 || !v3) {
+        if (v1) freeTarjanVertex(v1);
+        if (v2) freeTarjanVertex(v2);
+        if (v3) freeTarjanVertex(v3);
+        return 1;
+    }
+
+    printf("Scénario complet - Affichage de 3 vertices Tarjan:\n");
+    printf("Vertex 1: ");
+    displayTarjanVertex(*v1);
+    printf("\nVertex 2: ");
+    displayTarjanVertex(*v2);
+    printf("\nVertex 3: ");
+    displayTarjanVertex(*v3);
+    printf("\n");
+
+    freeTarjanVertex(v1);
+    freeTarjanVertex(v2);
+    freeTarjanVertex(v3);
+
+    return 0; // Scénario complet sans crash
+}
+
 void register_project_tests(void) {
     // Tests class.c
     add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
@@ -283,4 +381,15 @@ void register_project_tests(void) {
     add_test("freePartition_normal", test_freePartition_normal, "Libération normale d'une partition");
     add_test("freePartition_null", test_freePartition_null, "Libération partition NULL");
     add_test("partition_complete_scenario", test_partition_complete_scenario, "Scénario complet partition");
+
+    // Tests tarjan_vertex.c
+    add_test("createTarjanVertex_normal", test_createTarjanVertex_normal, "Création normale d'un vertex Tarjan");
+    add_test("createTarjanVertex_invalid_in_pile", test_createTarjanVertex_invalid_in_pile, "Création avec in_pile invalide");
+    add_test("createTarjanVertex_negative_values", test_createTarjanVertex_negative_values, "Création avec id négatif");
+    add_test("createTarjanVertex_negative_id", test_createTarjanVertex_negative_id, "Création avec id négatif uniquement");
+    add_test("displayTarjanVertex_normal", test_displayTarjanVertex_normal, "Affichage vertex Tarjan normal");
+    add_test("displayTarjanVertex_zero_values", test_displayTarjanVertex_zero_values, "Affichage vertex Tarjan valeurs nulles");
+    add_test("freeTarjanVertex_normal", test_freeTarjanVertex_normal, "Libération normale vertex Tarjan");
+    add_test("freeTarjanVertex_null", test_freeTarjanVertex_null, "Libération vertex Tarjan NULL");
+    add_test("tarjan_vertex_complete_scenario", test_tarjan_vertex_complete_scenario, "Scénario complet vertex Tarjan");
 }
