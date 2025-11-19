@@ -1,7 +1,25 @@
 #ifndef __HASSE_H__
 #define __HASSE_H__
 
+struct s_link {
+    int dept_nb;
+    int dest_nb;
+};
+
+typedef struct s_link t_link;
+
+struct s_link_array {
+    t_link * links;
+    int log_size;
+    int max_size;
+};
+
+typedef struct s_link_array t_link_array;
+
+
+
 void removeTransitiveLinks(t_link_array *p_link_array);
+int createArrayClass(int nb_sommets, t_link_array *arr);
 
 /**
  * @brief Creates a link array from the given partition and graph.

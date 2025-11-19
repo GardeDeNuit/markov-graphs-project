@@ -47,3 +47,21 @@ void removeTransitiveLinks(t_link_array *p_link_array)
         }
     }
 }
+
+int *createArrayClass(nb_vertex, *array)
+{
+    int *class = malloc(nb_vertex * sizeof(int));
+
+    for (int i = 0; i < nb_vertex; i++)
+        class[i] = i;
+
+    for (int i = 0; i < array->log_size; i++)
+    {
+        int a = array->links[i].dept_nb;
+        int b = array->links[i].dest_nb;
+
+        class[b] = class[a];
+    }
+
+    return class;
+}
