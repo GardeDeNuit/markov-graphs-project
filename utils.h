@@ -16,4 +16,11 @@ typedef struct {
     t_stack_cell *top;
 }t_stack;
 
+void init_Stack(t_stack *stack);
+void create_Stack(t_stack *stack);
+int is_Stack_Empty(t_stack *stack);
+void push_stack(t_stack *stack, int value);
+int pop_stack(t_stack *stack);
+void free_Stack(t_stack *stack);
+
 #endif
