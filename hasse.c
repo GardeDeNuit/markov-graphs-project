@@ -3,6 +3,8 @@
 
 
 void removeTransitiveLinks(t_link_array *p_link_array)
+//enleve des liens en trop
+
 {
     int i = 0;
     while (i < p_link_array->log_size)
@@ -49,6 +51,8 @@ void removeTransitiveLinks(t_link_array *p_link_array)
 }
 
 int *createArrayClass(nb_vertex, *array)
+//fonction qui permet de creer un tableau qui indique la classe de chaque sommet
+
 {
     int *class = malloc(nb_vertex * sizeof(int));
 
@@ -57,6 +61,7 @@ int *createArrayClass(nb_vertex, *array)
 
     for (int i = 0; i < array->log_size; i++)
     {
+        //associe chaque classe au plus petit numéro
         int a = array->links[i].dept_nb;
         int b = array->links[i].dest_nb;
 
@@ -67,6 +72,8 @@ int *createArrayClass(nb_vertex, *array)
 }
 
 void addLink(*link_array,dept,dest) {
+    //fonction qui permet de creer les connections du diagramme de hasse
+
     if (link_array->log_size >= link_array->max_size)
     {
         // Optional: automatic realloc
@@ -80,23 +87,25 @@ void addLink(*link_array,dept,dest) {
 }
 
 void createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
-{
-    // Create the class array
-    int *class_array = createArrayClass(num_vertices, class_links);
-    if (!class_array) return;
+//fonction qui permet de creer le diagramme de hasse
 
-    // Traverse all vertices
+{
+    // Cree le tableau de classe
+    int *class_array = createArrayClass(num_vertices, class_links);
+    if (!class_array) return; //si il n'y a pas de classe
+
+    //
     for (int i = 0; i < num_vertices; i++)
     {
         int Ci = class_array[i];
 
-        // For each neighbor j of i
+        //
         for (int k = 0; k < adj_size[i]; k++)
         {
             int j = adj_list[i][k];
             int Cj = class_array[j];
 
-            // If classes are different, add a link
+            // classe différente on ajoute le liens
             if (Ci != Cj)
             {
                 add_link(class_links, Ci, Cj);
@@ -104,7 +113,7 @@ void createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
         }
     }
 
-    // Remove transitive links to keep only immediate edges
+    // Enleve les redonances
     removeTransitiveLinks(class_links);
 
     free(class_array);
