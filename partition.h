@@ -3,6 +3,8 @@
 
 #include "class.h"
 
+#define DEBUG_PARTITION 0
+
 typedef struct s_partition{
     t_class *classes;
 } t_partition;
