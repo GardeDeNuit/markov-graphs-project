@@ -65,3 +65,47 @@ int *createArrayClass(nb_vertex, *array)
 
     return class;
 }
+
+void addLink(*link_array,dept,dest) {
+    if (link_array->log_size >= link_array->max_size)
+    {
+        // Optional: automatic realloc
+        link_array->max_size *= 2;
+        link_array->links = realloc(link_array->links, link_array->max_size * sizeof(t_link));
+    }
+
+    link_array->links[link_array->log_size].dept_nb = dept;
+    link_array->links[link_array->log_size].dest_nb = dest;
+    link_array->log_size++;
+}
+
+void createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
+{
+    // Create the class array
+    int *class_array = createArrayClass(num_vertices, class_links);
+    if (!class_array) return;
+
+    // Traverse all vertices
+    for (int i = 0; i < num_vertices; i++)
+    {
+        int Ci = class_array[i];
+
+        // For each neighbor j of i
+        for (int k = 0; k < adj_size[i]; k++)
+        {
+            int j = adj_list[i][k];
+            int Cj = class_array[j];
+
+            // If classes are different, add a link
+            if (Ci != Cj)
+            {
+                add_link(class_links, Ci, Cj);
+            }
+        }
+    }
+
+    // Remove transitive links to keep only immediate edges
+    removeTransitiveLinks(class_links);
+
+    free(class_array);
+}
