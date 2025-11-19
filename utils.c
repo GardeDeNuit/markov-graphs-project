@@ -53,6 +53,9 @@ void pushStack(t_stack *stack, int value) {
 }
 
 int popStack(t_stack *stack) {
+    if (isStackEmpty(stack)) {
+        return STACK_EMPTY;
+    }
     t_stack_cell *topCell = stack->top;
     int value = topCell->value;
     stack->top = topCell->next;

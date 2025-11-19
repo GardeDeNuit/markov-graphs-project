@@ -294,6 +294,96 @@ static int test_partition_multiple_classes(void) {
 }
 
 /*
+ * TESTS POUR LES PILES
+ */
+
+// Test création d'une pile
+static int test_stack_create(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+    if (stack->top != NULL) { freeStack(stack); return 1; }
+    freeStack(stack);
+    return 0;
+}
+
+// Test push simple
+static int test_stack_push(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+
+    pushStack(stack, 10);
+
+    if (stack->top == NULL) { freeStack(stack); return 1; }
+    if (stack->top->value != 10) { freeStack(stack); return 1; }
+
+    freeStack(stack);
+    return 0;
+}
+
+// Test push de plusieurs valeurs
+static int test_stack_multiple_push(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+
+    pushStack(stack, 10);
+    pushStack(stack, 20);
+
+    if (stack->top == NULL) { freeStack(stack); return 1; }
+    if (stack->top->value != 20) { freeStack(stack); return 1; }
+    if (stack->top->next == NULL) { freeStack(stack); return 1; }
+
+    freeStack(stack);
+    return 0;
+}
+
+// Test pop simple
+static int test_stack_pop(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+
+    pushStack(stack, 42);
+
+    int value = popStack(stack);
+    if (value != 42) { freeStack(stack); return 1; }
+
+
+    if (!isStackEmpty(stack)){
+        freeStack(stack); return 1;
+    }
+
+    freeStack(stack);
+    return 0;
+}
+
+// Test pop sur pile vide
+static int test_stack_pop_empty(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+
+    int value = popStack(stack);
+
+    if (value != -1) { freeStack(stack); return 1; }
+
+    freeStack(stack);
+    return 0;
+}
+
+// Test libération mémoire
+static int test_stack_free(void) {
+    t_stack *stack = createStack();
+    if (stack == NULL) return 1;
+
+    pushStack(stack, 1);
+    pushStack(stack, 2);
+    pushStack(stack, 3);
+
+    freeStack(stack);
+
+    return 0;
+}
+
+
+/*
  * TESTS SUPPLÉMENTAIRES DE ROBUSTESSE
  */
 
@@ -354,6 +444,14 @@ void register_project_tests(void) {
     add_test("partition_create", test_partition_create, "Création d'une partition");
     add_test("partition_add_class", test_partition_add_class, "Ajout d'une classe à une partition");
     add_test("partition_multiple_classes", test_partition_multiple_classes, "Plusieurs classes dans une partition");
+
+    // Tests de piles
+    add_test("stack_create", test_stack_create, "Création d'une pile");
+    add_test("stack_push", test_stack_push, "Insertion d'un élément dans la pile");
+    add_test("stack_multiple_push", test_stack_multiple_push, "Insertion de plusieurs éléments");
+    add_test("stack_pop", test_stack_pop, "Retrait d'un élément");
+    add_test("stack_pop_empty", test_stack_pop_empty, "Pop sur une pile vide");
+    add_test("stack_free", test_stack_free, "Libération complète de la pile");
 
     // Tests de robustesse
     add_test("null_parameters", test_null_parameters, "Gestion des paramètres NULL");

@@ -4,6 +4,7 @@
 #define TRUE 1
 #define FALSE 0
 
+#define STACK_EMPTY (-1)
 // Vérifie qu'un entier est dans l'intervalle [min,max]. Si erreur et errMsg non NULL, affiche errMsg.
 int validateIntRange(int value, int min, int max, const char *errMsg);
 
