@@ -6,6 +6,7 @@
 #include "class.h"
 #include "utils.h"
 #include "tarjan.h"
+#include "tarjan_vertex.h"
 
 static test_entry g_tests[256];
 static int g_test_count = 0;
@@ -20,23 +21,27 @@ void add_test(const char *name, test_fn fn, const char *comment) {
     g_test_count++;
 }
 
+static void free_tarjan_vertex_array(t_tarjan_vertex **array, int size) {
+    if (array == NULL) return;
+    for (int i = 0; i < size; ++i) {
+        if (array[i] != NULL) {
+            freeTarjanVertex(array[i]);
+        }
+    }
+    free(array);
+}
+
 int run_all_tests(void) {
     printf("Running %d tests...\n", g_test_count);
     int failures = 0;
     for (int i = 0; i < g_test_count; ++i) {
         test_entry *t = &g_tests[i];
-
-        // Afficher le nom et la description avant l'exécution
         printf("Test: %s", t->name);
         if (t->comment && strlen(t->comment) > 0) {
             printf(" (%s)", t->comment);
         }
-        printf("...\n");
-
-        // Exécuter le test
+        printf(" ... ");
         int res = t->fn();
-
-        // Afficher le statut après l'exécution
         if (res == 0) {
             printf("[PASS]\n");
         } else {
@@ -76,7 +81,6 @@ int test_addVertexToClass_normal() {
     addVertexToClass(class, 1);
     addVertexToClass(class, 2);
     addVertexToClass(class, 3);
-
     int result = (class->vertices != NULL && class->vertices->value == 3) ? 0 : 1;
     freeClass(class);
     return result;
@@ -356,6 +360,96 @@ int test_tarjan_vertex_complete_scenario() {
     return 0; // Scénario complet sans crash
 }
 
+int test_graphToTarjanVertices_valid() {
+    t_graph graph = createGraph(3);
+    if (graph.values == NULL) return 1;
+    t_tarjan_vertex **array = graphToTarjanVertices(graph);
+    int result = 0;
+    if (array == NULL) {
+        result = 1;
+    } else {
+        for (int i = 0; i < graph.size; ++i) {
+            if (array[i] == NULL || array[i]->id != i + 1 || array[i]->num != UNVISITED || array[i]->num_accessible != UNVISITED) {
+                result = 1;
+                break;
+            }
+        }
+    }
+    free_tarjan_vertex_array(array, graph.size);
+    freeGraph(&graph);
+    return result;
+}
+
+int test_graphToTarjanVertices_invalid_size() {
+    t_graph graph = createEmptyGraph();
+    t_tarjan_vertex **array = graphToTarjanVertices(graph);
+    return (array == NULL) ? 0 : 1;
+}
+
+int test_tarjan_empty_graph() {
+    t_graph graph = createEmptyGraph();
+    t_partition *partition = tarjan(graph);
+    int result = (partition != NULL && partition->classes == NULL) ? 0 : 1;
+    freePartition(partition);
+    return result;
+}
+
+int test_tarjan_single_vertex_no_edges() {
+    t_graph graph = createGraph(1);
+    if (graph.values == NULL) return 1;
+    t_partition *partition = tarjan(graph);
+    int result = 1;
+    if (partition != NULL && partition->classes != NULL &&
+        partition->classes->vertices != NULL &&
+        partition->classes->vertices->value == 1 &&
+        partition->classes->vertices->next == NULL &&
+        partition->classes->next == NULL) {
+        result = 0;
+    }
+    freePartition(partition);
+    freeGraph(&graph);
+    return result;
+}
+
+int test_tarjan_cycle_graph() {
+    t_graph graph = createGraph(3);
+    if (graph.values == NULL) return 1;
+    addEdge(&graph, 1, 2, 1.0);
+    addEdge(&graph, 2, 3, 1.0);
+    addEdge(&graph, 3, 1, 1.0);
+
+    t_partition *partition = tarjan(graph);
+    int result = 1;
+    if (partition != NULL && partition->classes != NULL && partition->classes->next == NULL) {
+        int seen[4] = {0};
+        int count = 0;
+        t_vertex *v = partition->classes->vertices;
+        while (v != NULL) {
+            if (v->value >= 1 && v->value <= 3 && seen[v->value] == 0) {
+                seen[v->value] = 1;
+                count++;
+            }
+            v = v->next;
+        }
+        if (count == 3 && seen[1] && seen[2] && seen[3]) {
+            result = 0;
+        }
+    }
+    freePartition(partition);
+    freeGraph(&graph);
+    return result;
+}
+
+int test_tarjan_imported_graph_example3() {
+    t_graph graph = importGraphFromFile("..\\data\\exemple3.txt");
+    if (graph.size == 0) return 1;
+    t_partition *partition = tarjan(graph);
+    int result = (partition != NULL && partition->classes != NULL) ? 0 : 1;
+    freePartition(partition);
+    freeGraph(&graph);
+    return result;
+}
+
 void register_project_tests(void) {
     // Tests class.c
     add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
@@ -392,4 +486,12 @@ void register_project_tests(void) {
     add_test("freeTarjanVertex_normal", test_freeTarjanVertex_normal, "Libération normale vertex Tarjan");
     add_test("freeTarjanVertex_null", test_freeTarjanVertex_null, "Libération vertex Tarjan NULL");
     add_test("tarjan_vertex_complete_scenario", test_tarjan_vertex_complete_scenario, "Scénario complet vertex Tarjan");
+
+    // Tests tarjan.c
+    add_test("graphToTarjanVertices_valid", test_graphToTarjanVertices_valid, "Conversion basique du graphe vers Tarjan");
+    add_test("graphToTarjanVertices_invalid_size", test_graphToTarjanVertices_invalid_size, "Conversion avec graphe vide");
+    add_test("tarjan_empty_graph", test_tarjan_empty_graph, "Tarjan sur graphe vide");
+    add_test("tarjan_single_vertex_no_edges", test_tarjan_single_vertex_no_edges, "Tarjan sur sommet isolé");
+    add_test("tarjan_cycle_graph", test_tarjan_cycle_graph, "Tarjan sur cycle simple");
+    add_test("tarjan_imported_graph_example3", test_tarjan_imported_graph_example3, "Tarjan sur data/example3.txt");
 }
