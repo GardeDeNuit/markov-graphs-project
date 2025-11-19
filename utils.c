@@ -76,3 +76,9 @@ int minInt(int a, int b) {
 int maxInt(int a, int b) {
     return (a > b) ? a : b;
 }
+
+char *intToStr(int value) {
+    static char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%d", value);
+    return buffer;
+}

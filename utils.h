@@ -26,7 +26,8 @@ void pushStack(t_stack *, int);
 int popStack(t_stack *);
 void FreeStackCells(t_stack_cell *);
 void freeStack(t_stack *);
-int minInt(int a, int b);
-int maxInt(int a, int b);
+int minInt(int, int);
+int maxInt(int, int);
+char *intToStr(int);
 
 #endif
