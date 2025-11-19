@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
 
 char *getID(int i)
@@ -31,4 +32,39 @@ int validateIntRange(int value, int min, int max, const char *errMsg) {
         return 0;
     }
     return 1;
+}
+
+
+t_stack * createStack() {
+    t_stack * stack = (t_stack *)malloc(sizeof(t_stack));
+    stack->top = NULL;
+    return stack;
+}
+
+int isStackEmpty(t_stack *stack) {
+    return stack->top == NULL;
+}
+
+void pushStack(t_stack *stack, int value) {
+    t_stack_cell *newCell = (t_stack_cell *)malloc(sizeof(t_stack_cell));
+    newCell->value = value;
+    newCell->next = stack->top;
+    stack->top = newCell;
+}
+
+int popStack(t_stack *stack) {
+    t_stack_cell *topCell = stack->top;
+    int value = topCell->value;
+    stack->top = topCell->next;
+    return value;
+}
+
+void freeStackCells(t_stack_cell *cell) {
+    if (cell == NULL) return;
+    freeStackCells(cell->next);
+    free(cell);
+}
+void freeStack(t_stack *stack) {
+    freeStackCells(stack->top);
+    free(stack);
 }
