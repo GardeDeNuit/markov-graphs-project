@@ -1,15 +1,12 @@
-
-
 #include "tarjan_vertex.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
 t_tarjan_vertex * createTarjanVertex(int id, int num, int num_accessible, int in_pile) {
-    t_tarjan_vertex * tarjan_vertex;
-    tarjan_vertex = (t_tarjan_vertex *)malloc(sizeof(t_tarjan_vertex));
+    t_tarjan_vertex * tarjan_vertex = (t_tarjan_vertex *)malloc(sizeof(t_tarjan_vertex));
     if (tarjan_vertex == NULL) {
-        //perror
+        perror("createTarjanVertex: allocation failed");
         return NULL;
     }
     tarjan_vertex->id = id;
