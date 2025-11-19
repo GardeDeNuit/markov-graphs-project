@@ -142,6 +142,122 @@ int test_class_complete_scenario() {
     return 0; // Scénario complet sans crash
 }
 
+// Tests pour partition.c
+int test_createPartition_normal() {
+    t_partition *partition = createPartition();
+    int result = (partition != NULL && partition->classes == NULL) ? 0 : 1;
+    freePartition(partition);
+    return result;
+}
+
+int test_addClassToPartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class2, 2);
+
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    int result = (partition->classes != NULL && partition->classes == class2) ? 0 : 1;
+    freePartition(partition);
+    return result;
+}
+
+int test_addClassToPartition_null_partition() {
+    t_class *class = createClass("Test");
+    addClassToPartition(NULL, class);
+    freeClass(class);
+    return 0; // Pas de crash = succès
+}
+
+int test_addClassToPartition_null_class() {
+    t_partition *partition = createPartition();
+    addClassToPartition(partition, NULL);
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_displayPartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class1, 2);
+    addVertexToClass(class2, 3);
+    addVertexToClass(class2, 4);
+
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    printf("Affichage attendu de la partition:\n");
+    displayPartition(partition);
+
+    freePartition(partition);
+    return 0; // Test visuel
+}
+
+int test_displayPartition_null() {
+    displayPartition(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_displayPartition_empty() {
+    t_partition *partition = createPartition();
+    displayPartition(partition);
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_freePartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class2, 2);
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_freePartition_null() {
+    freePartition(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_partition_complete_scenario() {
+    t_partition *partition = createPartition();
+
+    // Créer plusieurs classes avec des vertices
+    t_class *scc1 = createClass("SCC1");
+    t_class *scc2 = createClass("SCC2");
+    t_class *scc3 = createClass("SCC3");
+
+    addVertexToClass(scc1, 1);
+    addVertexToClass(scc1, 2);
+    addVertexToClass(scc2, 3);
+    addVertexToClass(scc3, 4);
+    addVertexToClass(scc3, 5);
+    addVertexToClass(scc3, 6);
+
+    // Ajouter à la partition
+    addClassToPartition(partition, scc1);
+    addClassToPartition(partition, scc2);
+    addClassToPartition(partition, scc3);
+
+    printf("Scénario complet - Partition avec 3 classes:\n");
+    displayPartition(partition);
+
+    freePartition(partition);
+    return 0; // Scénario complet sans crash
+}
+
 void register_project_tests(void) {
     // Tests class.c
     add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
@@ -155,4 +271,16 @@ void register_project_tests(void) {
     add_test("freeClass_normal", test_freeClass_normal, "Libération normale d'une classe");
     add_test("freeClass_null", test_freeClass_null, "Libération classe NULL");
     add_test("class_complete_scenario", test_class_complete_scenario, "Scénario complet de test");
+
+    // Tests partition.c
+    add_test("createPartition_normal", test_createPartition_normal, "Création normale d'une partition");
+    add_test("addClassToPartition_normal", test_addClassToPartition_normal, "Ajout de classes à une partition");
+    add_test("addClassToPartition_null_partition", test_addClassToPartition_null_partition, "Ajout classe à partition NULL");
+    add_test("addClassToPartition_null_class", test_addClassToPartition_null_class, "Ajout classe NULL à partition");
+    add_test("displayPartition_normal", test_displayPartition_normal, "Affichage d'une partition");
+    add_test("displayPartition_null", test_displayPartition_null, "Affichage partition NULL");
+    add_test("displayPartition_empty", test_displayPartition_empty, "Affichage partition vide");
+    add_test("freePartition_normal", test_freePartition_normal, "Libération normale d'une partition");
+    add_test("freePartition_null", test_freePartition_null, "Libération partition NULL");
+    add_test("partition_complete_scenario", test_partition_complete_scenario, "Scénario complet partition");
 }
