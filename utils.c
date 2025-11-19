@@ -69,10 +69,10 @@ void freeStack(t_stack *stack) {
     free(stack);
 }
 
-int min(int a, int b) {
+int minInt(int a, int b) {
     return (a < b) ? a : b;
 }
 
-int max(int a, int b) {
+int maxInt(int a, int b) {
     return (a > b) ? a : b;
 }
