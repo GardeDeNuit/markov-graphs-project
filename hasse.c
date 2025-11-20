@@ -17,7 +17,7 @@ void removeTransitiveLinks(t_link_array *p_link_array)
             if (j != i)
             {
                 t_link link2 = p_link_array->links[j];
-                if (link1.from == link2.from)
+                if (link1.dept_nb == link2.dept_nb)
                 {
                     // look for a link from link2.to to link1.to
                     int k = 0;
@@ -26,7 +26,7 @@ void removeTransitiveLinks(t_link_array *p_link_array)
                         if (k != j && k != i)
                         {
                             t_link link3 = p_link_array->links[k];
-                            if ((link3.from == link2.to) && (link3.to == link1.to))
+                            if ((link3.dept_nb == link2.dest_nb) && (link3.dest_nb == link1.dest_nb))
                             {
                                 to_remove = 1;
                             }
@@ -50,7 +50,7 @@ void removeTransitiveLinks(t_link_array *p_link_array)
     }
 }
 
-int *createArrayClass(nb_vertex, *array)
+int *createArrayClass(int nb_vertex, t_link_array * array)
 //fonction qui permet de creer un tableau qui indique la classe de chaque sommet
 
 {
@@ -71,7 +71,7 @@ int *createArrayClass(nb_vertex, *array)
     return class;
 }
 
-void addLink(*link_array,dept,dest) {
+void addLink(t_link_array *link_array,int dept,int dest) {
     //fonction qui permet de creer les connections du diagramme de hasse
 
     if (link_array->log_size >= link_array->max_size)
@@ -86,7 +86,7 @@ void addLink(*link_array,dept,dest) {
     link_array->log_size++;
 }
 
-int createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
+int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links)
 //fonction qui permet de creer le diagramme de hasse
 
 {
@@ -119,7 +119,8 @@ int createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
     return class_array;
 }
 
-int StatFunction(class_array, num_vertices) {
+
+int StatFunction(int * class_array, int num_vertices) {
     for (int i = 0; i < num_vertices; i++) {
         class_array[i];
     }
