@@ -23,6 +23,10 @@ void removeTransitiveLinks(t_link_array *p_link_array);
 int *createArrayClass(int nb_sommets, t_link_array *arr);
 int StatFunction(int * class_array, int num_vertices);
 
+
+int *ClassType(int*,int,t_link_array);
+int isAbsorbingState(int*,int,int*);
+int isIrreductible(int*,int);
 /**
  * @brief Creates a link array from the given partition and graph.
  *

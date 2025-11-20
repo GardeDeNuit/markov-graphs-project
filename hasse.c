@@ -118,9 +118,45 @@ int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array 
     return *class_array;
 }
 
+// Définition des caractéristiques du graph
 
-int StatFunction(int * class_array, int num_vertices) {
+int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
+    int *type_array = malloc(num_vertices * sizeof(int));
+
     for (int i = 0; i < num_vertices; i++) {
-        class_array[i];
+        type_array[i] = 0; // Initialisation à 0 = absorbant
     }
+
+    // Parcours des liens
+    for (int i = 0; i < class_links.log_size; i++) {
+        int dept = class_links.links[i].dept_nb;
+        int dest = class_links.links[i].dest_nb;
+
+        if (dept != dest) {
+            type_array[dest] = 1; // 1 = transitoire
+        }
+
+    }
+    return type_array;
+}
+
+int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
+    // Vérifie si une classe est absorbante
+    for (int i = 0; i < class_sizes[class_nb]; i++) {
+        if (type_array[i] != 0) {
+            return 0; // Pas absorbant
+        }
+    }
+    return 1; // Absorbant
+}
+
+int isIrreductible(int* class_array,int num_vertices) {
+    // Vérifie si le graphe est irréductible
+    int first_class = class_array[0];
+    for (int i = 1; i < num_vertices; i++) {
+        if (class_array[i] != first_class) {
+            return 0; // Pas irréductible
+        }
+    }
+    return 1; // Irréductible
 }
