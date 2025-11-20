@@ -43,6 +43,169 @@ int run_all_tests(void) {
     return failures;
 }
 
+// Tests pour les listes chaînées
+// Test création d'une liste vide
+static int test_list_create_empty(void) {
+    t_list l = createEmptyList();
+    if (l.head != NULL) return 1;
+    return 0;
+}
+
+// Test ajout d'un élément à une liste
+static int test_list_add_cell(void) {
+    t_list l = createEmptyList();
+    addCell(&l, 3, 1.5);
+    if (l.head == NULL) { freeList(&l); return 1; }
+    if (l.head->vertex != 3) { freeList(&l); return 1; }
+    if (l.head->weight != 1.5) { freeList(&l); return 1; }
+    freeList(&l);
+    return 0;
+}
+
+// Test libération mémoire d'une liste
+static int test_list_free(void) {
+    t_list l = createEmptyList();
+    addCell(&l, 1, 0.5);
+    addCell(&l, 2, 0.3);
+    freeList(&l);
+    if (l.head != NULL) return 1;
+    return 0;
+}
+
+// Test somme des poids d'une liste vide
+static int test_list_sum_empty(void) {
+    t_list l = createEmptyList();
+    if (sumValues(l) != 0.0) return 1;
+    return 0;
+}
+
+// Test somme des poids d'une liste avec éléments
+static int test_list_sum_values(void) {
+    t_list l = createEmptyList();
+    addCell(&l, 1, 0.4);
+    addCell(&l, 2, 0.6);
+    double sum = sumValues(l);
+    freeList(&l);
+    // Tolérance pour comparaison de flottants
+    if (sum < 0.99 || sum > 1.01) return 1;
+    return 0;
+}
+
+// Test ajout de plusieurs éléments (ordre d'insertion)
+static int test_list_multiple_elements(void) {
+    t_list l = createEmptyList();
+    addCell(&l, 1, 0.1);
+    addCell(&l, 2, 0.2);
+    addCell(&l, 3, 0.3);
+    // Les éléments sont ajoutés en tête, donc ordre inverse
+    if (l.head->vertex != 3) { freeList(&l); return 1; }
+    if (l.head->next->vertex != 2) { freeList(&l); return 1; }
+    if (l.head->next->next->vertex != 1) { freeList(&l); return 1; }
+    freeList(&l);
+    return 0;
+}
+
+
+
+// Tests pour les graphes
+// Test création d'un graphe
+static int test_graph_create(void) {
+    t_graph g = createGraph(4);
+    if (g.size != 4) { freeGraph(&g); return 1; }
+    freeGraph(&g);
+    return 0;
+}
+
+// Test ajout d'une arête
+static int test_graph_add_edge(void) {
+    t_graph g = createGraph(3);
+    addEdge(&g, 1, 2, 0.5);
+    if (!hasEdge(g, 1, 2)) { freeGraph(&g); return 1; }
+    freeGraph(&g);
+    return 0;
+}
+
+// Test détection d'arête inexistante
+static int test_graph_no_edge(void) {
+    t_graph g = createGraph(3);
+    if (hasEdge(g, 1, 2)) { freeGraph(&g); return 1; }
+    freeGraph(&g);
+    return 0;
+}
+
+// Test récupération des voisins
+static int test_graph_get_neighbors(void) {
+    t_graph g = createGraph(4);
+    addEdge(&g, 1, 2, 0.5);
+    addEdge(&g, 1, 3, 0.3);
+    t_list* neighbors = getNeighbors(&g, 1);
+    if (neighbors == NULL) { freeGraph(&g); return 1; }
+    if (neighbors->head == NULL) { freeGraph(&g); return 1; }
+    // Au moins un voisin doit exister
+    int found_neighbor = 0;
+    t_cell* curr = neighbors->head;
+    while (curr != NULL) {
+        if (curr->vertex == 2 || curr->vertex == 3) found_neighbor = 1;
+        curr = curr->next;
+    }
+    freeGraph(&g);
+    return found_neighbor ? 0 : 1;
+}
+
+// Test avec sommet invalide
+static int test_graph_invalid_vertex(void) {
+    t_graph g = createGraph(3);
+    t_list* neighbors = getNeighbors(&g, 5); // Sommet hors limites
+    freeGraph(&g);
+    // Devrait retourner NULL pour un sommet invalide
+    return (neighbors == NULL) ? 0 : 1;
+}
+
+// Test libération d'un graphe
+static int test_graph_free(void) {
+    t_graph g = createGraph(2);
+    addEdge(&g, 1, 2, 1.0);
+    freeGraph(&g);
+    // Après libération, on ne peut pas vraiment tester grand chose
+    return 0;
+}
+
+
+// Tests pour l'importation de graphes
+// Test lecture d'un fichier valide
+static int test_read_file_valid(void) {
+    t_graph g = importGraphFromFile("../data/exemple1.txt");
+    if (g.size == 0) { freeGraph(&g); return 1; }
+    freeGraph(&g);
+    return 0;
+}
+
+// Test lecture d'un fichier inexistant
+static int test_read_file_nonexistent(void) {
+    t_graph g = importGraphFromFile("fichier_inexistant.txt");
+    // Devrait retourner un graphe de taille 0 en cas d'erreur
+    int result = (g.size == 0) ? 0 : 1;
+    freeGraph(&g);
+    return result;
+}
+
+
+// Tests pour les graphs de markov
+static int test_markov_valid(void) {
+    t_graph g = importGraphFromFile("../data/exemple1.txt");
+    if (g.size == 0) { freeGraph(&g); return 1; }
+    int is_markov = is_graphMarkov(g);
+    freeGraph(&g);
+    return (is_markov == 1) ? 0 : 1;
+}
+
+static int test_markov_invalid(void) {
+    t_graph g = importGraphFromFile("../data/exemple1_from_chatGPT.txt");
+    if (g.size == 0) { freeGraph(&g); return 1; }
+    int is_markov = is_graphMarkov(g);
+    freeGraph(&g);
+    return (is_markov == 0) ? 0 : 1;
+}
 
 // Tests pour class.c
 int test_createClass_normal() {
@@ -414,6 +577,30 @@ int test_tarjan_imported_graph_example3() {
 }
 
 void register_project_tests(void) {
+    // Tests des listes
+    add_test("list_create_empty", test_list_create_empty, "Création d'une liste vide");
+    add_test("list_add_cell", test_list_add_cell, "Ajout d'un élément à une liste");
+    add_test("list_free", test_list_free, "Libération mémoire d'une liste");
+    add_test("list_sum_empty", test_list_sum_empty, "Somme d'une liste vide");
+    add_test("list_sum_values", test_list_sum_values, "Somme des poids dans une liste");
+    add_test("list_multiple_elements", test_list_multiple_elements, "Ordre d'insertion des éléments");
+
+    // Tests des graphes
+    add_test("graph_create", test_graph_create, "Création d'un graphe");
+    add_test("graph_add_edge", test_graph_add_edge, "Ajout d'une arête");
+    add_test("graph_no_edge", test_graph_no_edge, "Détection d'arête inexistante");
+    add_test("graph_get_neighbors", test_graph_get_neighbors, "Récupération des voisins");
+    add_test("graph_invalid_vertex", test_graph_invalid_vertex, "Gestion sommet invalide");
+    add_test("graph_free", test_graph_free, "Libération d'un graphe");
+
+    // Tests de lecture de fichier
+    add_test("read_file_valid", test_read_file_valid, "Lecture d'un fichier valide");
+    add_test("read_file_nonexistent", test_read_file_nonexistent, "Lecture fichier inexistant");
+
+    // Tests Markov
+    add_test("markov_valid", test_markov_valid, "Graphe de Markov valide");
+    add_test("markov_invalid", test_markov_invalid, "Graphe non-Markov");
+
     // Tests class.c
     add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
     add_test("createClass_long_name", test_createClass_long_name, "Nom trop long pour une classe");
