@@ -3,6 +3,7 @@
 #define TARJAN_VERTEX_H
 #include <stdlib.h>
 
+#define DEBUG_TARJAN_VERTEX 0
 
 struct s_tarjan_vertex {
     int id;

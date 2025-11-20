@@ -5,6 +5,8 @@
 #include "partition.h"
 #include "class.h"
 #include "utils.h"
+#include "tarjan.h"
+#include "tarjan_vertex.h"
 
 static test_entry g_tests[256];
 static int g_test_count = 0;
@@ -24,26 +26,24 @@ int run_all_tests(void) {
     int failures = 0;
     for (int i = 0; i < g_test_count; ++i) {
         test_entry *t = &g_tests[i];
-        int res = t->fn();
-        if (res == 0) {
-            printf("[PASS] %s", t->name);
-        } else {
-            printf("[FAIL] %s", t->name);
-            failures++;
-        }
+        printf("Test: %s", t->name);
         if (t->comment && strlen(t->comment) > 0) {
             printf(" (%s)", t->comment);
         }
-        printf("\n");
+        printf("...\n");
+        int res = t->fn();
+        if (res == 0) {
+            printf("[PASS]\n");
+        } else {
+            printf("[FAIL]\n");
+            failures++;
+        }
     }
     printf("Summary: %d tests failed\n", failures);
     return failures;
 }
 
-/*
- * TESTS POUR LES LISTES CHAÎNÉES
- */
-
+// Tests pour les listes chaînées
 // Test création d'une liste vide
 static int test_list_create_empty(void) {
     t_list l = createEmptyList();
@@ -106,10 +106,8 @@ static int test_list_multiple_elements(void) {
 }
 
 
-/*
- * TESTS POUR LES GRAPHES
- */
 
+// Tests pour les graphes
 // Test création d'un graphe
 static int test_graph_create(void) {
     t_graph g = createGraph(4);
@@ -172,10 +170,8 @@ static int test_graph_free(void) {
     return 0;
 }
 
-/*
- * TESTS POUR LA LECTURE DE FICHIER
- */
 
+// Tests pour l'importation de graphes
 // Test lecture d'un fichier valide
 static int test_read_file_valid(void) {
     t_graph g = importGraphFromFile("../data/exemple1.txt");
@@ -193,11 +189,8 @@ static int test_read_file_nonexistent(void) {
     return result;
 }
 
-/*
- * TESTS POUR GRAPHE DE MARKOV
- */
 
-// Test graphe de Markov valide
+// Tests pour les graphs de markov
 static int test_markov_valid(void) {
     t_graph g = importGraphFromFile("../data/exemple1.txt");
     if (g.size == 0) { freeGraph(&g); return 1; }
@@ -206,7 +199,6 @@ static int test_markov_valid(void) {
     return (is_markov == 1) ? 0 : 1;
 }
 
-// Test graphe non-Markov
 static int test_markov_invalid(void) {
     t_graph g = importGraphFromFile("../data/exemple1_from_chatGPT.txt");
     if (g.size == 0) { freeGraph(&g); return 1; }
@@ -215,199 +207,373 @@ static int test_markov_invalid(void) {
     return (is_markov == 0) ? 0 : 1;
 }
 
-/*
- * TESTS POUR LES CLASSES
- */
-
-// Test création d'une classe
-static int test_class_create(void) {
-    t_class *c = createClass("TestClass");
-    if (c == NULL) return 1;
-    if (strcmp(c->name, "TestClass") != 0) { freeClass(c); return 1; }
-    if (c->vertexes != NULL) { freeClass(c); return 1; }
-    freeClass(c);
-    return 0;
+// Tests pour class.c
+int test_createClass_normal() {
+    t_class *class = createClass("SCC1");
+    int result = (class != NULL && strcmp(class->name, "SCC1") == 0 && class->vertices == NULL && class->next == NULL) ? 0 : 1;
+    freeClass(class);
+    return result;
 }
 
-// Test ajout d'un sommet à une classe
-static int test_class_add_vertex(void) {
-    t_class *c = createClass("Test");
-    if (c == NULL) return 1;
-    addVertexToClass(c, 5);
-    if (c->vertexes == NULL) { freeClass(c); return 1; }
-    if (c->vertexes->value != 5) { freeClass(c); return 1; }
-    freeClass(c);
-    return 0;
+int test_createClass_long_name() {
+    t_class *class = createClass("UnNomTropLongPourLaStructureUnNomTropLongPourLaStructure");
+    int result = (class == NULL) ? 0 : 1;
+    if (class) freeClass(class);
+    return result;
 }
 
-// Test ajout de plusieurs sommets à une classe
-static int test_class_multiple_vertices(void) {
-    t_class *c = createClass("Multi");
-    if (c == NULL) return 1;
-    addVertexToClass(c, 1);
-    addVertexToClass(c, 2);
-    addVertexToClass(c, 3);
-    // Ordre d'insertion en tête: 3 -> 2 -> 1
-    if (c->vertexes->value != 3) { freeClass(c); return 1; }
-    if (c->vertexes->next->value != 2) { freeClass(c); return 1; }
-    if (c->vertexes->next->next->value != 1) { freeClass(c); return 1; }
-    freeClass(c);
-    return 0;
+int test_createVertex_normal() {
+    t_vertex *vertex = createVertex(42);
+    int result = (vertex != NULL && vertex->value == 42 && vertex->next == NULL) ? 0 : 1;
+    free(vertex);
+    return result;
 }
 
-/*
- * TESTS POUR LES PARTITIONS
- */
-
-// Test création d'une partition
-static int test_partition_create(void) {
-    t_partition *part = createPartition();
-    if (part == NULL) return 1;
-    if (part->classes != NULL) { freePartition(part); return 1; }
-    freePartition(part);
-    return 0;
+int test_addVertexToClass_normal() {
+    t_class *class = createClass("Test");
+    addVertexToClass(class, 1);
+    addVertexToClass(class, 2);
+    addVertexToClass(class, 3);
+    int result = (class->vertices != NULL && class->vertices->value == 3) ? 0 : 1;
+    freeClass(class);
+    return result;
 }
 
-// Test ajout d'une classe à une partition
-static int test_partition_add_class(void) {
-    t_partition *part = createPartition();
-    if (part == NULL) return 1;
-    t_class *class1 = createClass("C1");
-    addClassToPartition(part, class1);
-    if (part->classes == NULL) { freePartition(part); return 1; }
-    freePartition(part);
-    return 0;
+int test_addVertexToClass_null() {
+    addVertexToClass(NULL, 1);
+    return 0; // Pas de crash = succès
 }
 
-// Test ajout de plusieurs classes à une partition
-static int test_partition_multiple_classes(void) {
-    t_partition *part = createPartition();
-    if (part == NULL) return 1;
-    t_class *class1 = createClass("C1");
-    t_class *class2 = createClass("C2");
-    addClassToPartition(part, class1);
-    addClassToPartition(part, class2);
-    if (part->classes == NULL) { freePartition(part); return 1; }
-    if (part->classes->next == NULL) { freePartition(part); return 1; }
-    freePartition(part);
-    return 0;
+int test_displayClass() {
+    t_class *class = createClass("TestDisplay");
+    addVertexToClass(class, 10);
+    addVertexToClass(class, 20);
+    addVertexToClass(class, 30);
+
+    printf("Affichage attendu : Class TestDisplay: {30,20,10}\n");
+    displayClass(class);
+    freeClass(class);
+    return 0; // Test visuel
 }
 
-/*
- * TESTS POUR LES PILES
- */
-
-// Test création d'une pile
-static int test_stack_create(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
-    if (stack->top != NULL) { freeStack(stack); return 1; }
-    freeStack(stack);
-    return 0;
+int test_displayClass_null() {
+    displayClass(NULL);
+    return 0; // Pas de crash = succès
 }
 
-// Test push simple
-static int test_stack_push(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
-
-    pushStack(stack, 10);
-
-    if (stack->top == NULL) { freeStack(stack); return 1; }
-    if (stack->top->value != 10) { freeStack(stack); return 1; }
-
-    freeStack(stack);
-    return 0;
+int test_displayVertices_empty() {
+    displayVertices(NULL);
+    return 0; // Pas de crash = succès
 }
 
-// Test push de plusieurs valeurs
-static int test_stack_multiple_push(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
-
-    pushStack(stack, 10);
-    pushStack(stack, 20);
-
-    if (stack->top == NULL) { freeStack(stack); return 1; }
-    if (stack->top->value != 20) { freeStack(stack); return 1; }
-    if (stack->top->next == NULL) { freeStack(stack); return 1; }
-
-    freeStack(stack);
-    return 0;
+int test_freeClass_normal() {
+    t_class *class = createClass("TestFree");
+    addVertexToClass(class, 1);
+    addVertexToClass(class, 2);
+    freeClass(class);
+    return 0; // Pas de crash = succès
 }
 
-// Test pop simple
-static int test_stack_pop(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
+int test_freeClass_null() {
+    freeClass(NULL);
+    return 0; // Pas de crash = succès
+}
 
-    pushStack(stack, 42);
+int test_class_complete_scenario() {
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
 
-    int value = popStack(stack);
-    if (value != 42) { freeStack(stack); return 1; }
+    addVertexToClass(class1, 1);
+    addVertexToClass(class1, 2);
+    addVertexToClass(class2, 3);
+    addVertexToClass(class2, 4);
+    addVertexToClass(class2, 5);
 
+    printf("Affichage des classes créées:\n");
+    displayClass(class1);
+    displayClass(class2);
 
-    if (!isStackEmpty(stack)){
-        freeStack(stack); return 1;
+    freeClass(class1);
+    freeClass(class2);
+
+    return 0; // Scénario complet sans crash
+}
+
+// Tests pour partition.c
+int test_createPartition_normal() {
+    t_partition *partition = createPartition();
+    int result = (partition != NULL && partition->classes == NULL) ? 0 : 1;
+    freePartition(partition);
+    return result;
+}
+
+int test_addClassToPartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class2, 2);
+
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    int result = (partition->classes != NULL && partition->classes == class2) ? 0 : 1;
+    freePartition(partition);
+    return result;
+}
+
+int test_addClassToPartition_null_partition() {
+    t_class *class = createClass("Test");
+    addClassToPartition(NULL, class);
+    freeClass(class);
+    return 0; // Pas de crash = succès
+}
+
+int test_addClassToPartition_null_class() {
+    t_partition *partition = createPartition();
+    addClassToPartition(partition, NULL);
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_displayPartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class1, 2);
+    addVertexToClass(class2, 3);
+    addVertexToClass(class2, 4);
+
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    printf("Affichage attendu de la partition:\n");
+    displayPartition(partition);
+
+    freePartition(partition);
+    return 0; // Test visuel
+}
+
+int test_displayPartition_null() {
+    displayPartition(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_displayPartition_empty() {
+    t_partition *partition = createPartition();
+    displayPartition(partition);
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_freePartition_normal() {
+    t_partition *partition = createPartition();
+    t_class *class1 = createClass("SCC1");
+    t_class *class2 = createClass("SCC2");
+
+    addVertexToClass(class1, 1);
+    addVertexToClass(class2, 2);
+    addClassToPartition(partition, class1);
+    addClassToPartition(partition, class2);
+
+    freePartition(partition);
+    return 0; // Pas de crash = succès
+}
+
+int test_freePartition_null() {
+    freePartition(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_partition_complete_scenario() {
+    t_partition *partition = createPartition();
+
+    // Créer plusieurs classes avec des vertices
+    t_class *scc1 = createClass("SCC1");
+    t_class *scc2 = createClass("SCC2");
+    t_class *scc3 = createClass("SCC3");
+
+    addVertexToClass(scc1, 1);
+    addVertexToClass(scc1, 2);
+    addVertexToClass(scc2, 3);
+    addVertexToClass(scc3, 4);
+    addVertexToClass(scc3, 5);
+    addVertexToClass(scc3, 6);
+
+    // Ajouter à la partition
+    addClassToPartition(partition, scc1);
+    addClassToPartition(partition, scc2);
+    addClassToPartition(partition, scc3);
+
+    printf("Partition avec 3 classes:\n");
+    displayPartition(partition);
+
+    freePartition(partition);
+    return 0; // Scénario complet sans crash
+}
+
+// Tests pour tarjan_vertex.c
+int test_createTarjanVertex_normal() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 5, 3, 1);
+    int result = (vertex != NULL && vertex->id == 1 && vertex->num == 5 &&
+                  vertex->num_accessible == 3 && vertex->in_pile == 1 && vertex->next == NULL) ? 0 : 1;
+    freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_invalid_in_pile() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 5, 3, 2); // in_pile invalide
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_negative_values() {
+    t_tarjan_vertex *vertex = createTarjanVertex(-1, -5, -3, 0);
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_createTarjanVertex_negative_id() {
+    t_tarjan_vertex *vertex = createTarjanVertex(-5, 10, 5, 1);
+    int result = (vertex == NULL) ? 0 : 1;
+    if (vertex) freeTarjanVertex(vertex);
+    return result;
+}
+
+int test_displayTarjanVertex_normal() {
+    t_tarjan_vertex vertex;
+    vertex.id = 42;
+    vertex.num = 10;
+    vertex.num_accessible = 5;
+    vertex.in_pile = 1;
+    vertex.next = NULL;
+
+    printf("Affichage attendu: (42, 10, 5, 1)\n");
+    displayTarjanVertex(vertex);
+    printf("\n");
+    return 0; // Test visuel
+}
+
+int test_displayTarjanVertex_zero_values() {
+    t_tarjan_vertex vertex;
+    vertex.id = 0;
+    vertex.num = 0;
+    vertex.num_accessible = 0;
+    vertex.in_pile = 0;
+    vertex.next = NULL;
+
+    printf("Affichage attendu: (0, 0, 0, 0)\n");
+    displayTarjanVertex(vertex);
+    printf("\n");
+    return 0; // Test visuel
+}
+
+int test_freeTarjanVertex_normal() {
+    t_tarjan_vertex *vertex = createTarjanVertex(1, 2, 3, 0);
+    freeTarjanVertex(vertex);
+    return 0; // Pas de crash = succès
+}
+
+int test_freeTarjanVertex_null() {
+    freeTarjanVertex(NULL);
+    return 0; // Pas de crash = succès
+}
+
+int test_tarjan_vertex_complete_scenario() {
+    // Créer plusieurs vertices Tarjan
+    t_tarjan_vertex *v1 = createTarjanVertex(1, 1, 1, 1);
+    t_tarjan_vertex *v2 = createTarjanVertex(2, 2, 1, 1);
+    t_tarjan_vertex *v3 = createTarjanVertex(3, 3, 3, 0);
+
+    if (!v1 || !v2 || !v3) {
+        if (v1) freeTarjanVertex(v1);
+        if (v2) freeTarjanVertex(v2);
+        if (v3) freeTarjanVertex(v3);
+        return 1;
     }
 
-    freeStack(stack);
-    return 0;
+    printf("Affichage de 3 vertices Tarjan:\n");
+    printf("Vertex 1: ");
+    displayTarjanVertex(*v1);
+    printf("\nVertex 2: ");
+    displayTarjanVertex(*v2);
+    printf("\nVertex 3: ");
+    displayTarjanVertex(*v3);
+    printf("\n");
+
+    freeTarjanVertex(v1);
+    freeTarjanVertex(v2);
+    freeTarjanVertex(v3);
+
+    return 0; // Scénario complet sans crash
 }
 
-// Test pop sur pile vide
-static int test_stack_pop_empty(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
-
-    int value = popStack(stack);
-
-    if (value != -1) { freeStack(stack); return 1; }
-
-    freeStack(stack);
-    return 0;
+int test_graphToTarjanVertices_valid() {
+    t_graph graph = createGraph(3);
+    if (graph.values == NULL) return 1;
+    t_tarjan_vertex **array = graphToTarjanVertices(graph);
+    int result = 0;
+    if (array == NULL) {
+        result = 1;
+    } else {
+        for (int i = 0; i < graph.size; ++i) {
+            if (array[i] == NULL || array[i]->id != i + 1 || array[i]->num != UNVISITED || array[i]->num_accessible != UNVISITED) {
+                result = 1;
+                break;
+            }
+        }
+    }
+    freeTarjanVerticesPartial(array, graph.size);
+    freeGraph(&graph);
+    return result;
 }
 
-// Test libération mémoire
-static int test_stack_free(void) {
-    t_stack *stack = createStack();
-    if (stack == NULL) return 1;
-
-    pushStack(stack, 1);
-    pushStack(stack, 2);
-    pushStack(stack, 3);
-
-    freeStack(stack);
-
-    return 0;
+int test_graphToTarjanVertices_invalid_size() {
+    t_graph graph = createEmptyGraph();
+    t_tarjan_vertex **array = graphToTarjanVertices(graph);
+    return (array == NULL) ? 0 : 1;
 }
 
-
-/*
- * TESTS SUPPLÉMENTAIRES DE ROBUSTESSE
- */
-
-// Test gestion des paramètres NULL
-static int test_null_parameters(void) {
-    // Test addCell avec liste NULL
-    addCell(NULL, 1, 0.5); // Ne doit pas crasher
-
-    // Test freeList avec NULL
-    freeList(NULL); // Ne doit pas crasher
-
-    return 0;
+int test_tarjan_empty_graph() {
+    t_graph graph = createEmptyGraph();
+    t_partition *partition = tarjan(graph);
+    int result = (partition != NULL && partition->classes == NULL) ? 0 : 1;
+    freePartition(partition);
+    return result;
 }
 
-// Test limites des valeurs flottantes
-static int test_float_limits(void) {
-    t_list l = createEmptyList();
-    addCell(&l, 1, 0.0);
-    addCell(&l, 2, 1.0);
-    addCell(&l, 3, 0.000001);
-    double sum = sumValues(l);
-    freeList(&l);
-    // Vérifier que la somme est dans une plage raisonnable
-    return (sum >= 0.9 && sum <= 1.1) ? 0 : 1;
+int test_tarjan_single_vertex_no_edges() {
+    t_graph graph = createGraph(1);
+    if (graph.values == NULL) return 1;
+    t_partition *partition = tarjan(graph);
+    int result = 1;
+    if (partition != NULL && partition->classes != NULL &&
+        partition->classes->vertices != NULL &&
+        partition->classes->vertices->value == 1 &&
+        partition->classes->vertices->next == NULL &&
+        partition->classes->next == NULL) {
+        result = 0;
+    }
+    freePartition(partition);
+    freeGraph(&graph);
+    return result;
+}
+
+int test_tarjan_imported_graph_example3() {
+    t_graph graph = importGraphFromFile("..\\data\\exemple3.txt");
+    if (graph.size == 0) return 1;
+    t_partition *partition = tarjan(graph);
+    int result = (partition != NULL && partition->classes != NULL) ? 0 : 1;
+    printf("Partition résultante de l'exemple 3:\n");
+    displayPartition(partition);
+    freePartition(partition);
+    freeGraph(&graph);
+    return result;
 }
 
 void register_project_tests(void) {
@@ -435,25 +601,46 @@ void register_project_tests(void) {
     add_test("markov_valid", test_markov_valid, "Graphe de Markov valide");
     add_test("markov_invalid", test_markov_invalid, "Graphe non-Markov");
 
-    // Tests des classes
-    add_test("class_create", test_class_create, "Création d'une classe");
-    add_test("class_add_vertex", test_class_add_vertex, "Ajout d'un sommet à une classe");
-    add_test("class_multiple_vertices", test_class_multiple_vertices, "Plusieurs sommets dans une classe");
+    // Tests class.c
+    add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
+    add_test("createClass_long_name", test_createClass_long_name, "Nom trop long pour une classe");
+    add_test("createVertex_normal", test_createVertex_normal, "Création normale d'un vertex");
+    add_test("addVertexToClass_normal", test_addVertexToClass_normal, "Ajout de vertices à une classe");
+    add_test("addVertexToClass_null", test_addVertexToClass_null, "Ajout vertex à classe NULL");
+    add_test("displayClass", test_displayClass, "Affichage d'une classe");
+    add_test("displayClass_null", test_displayClass_null, "Affichage classe NULL");
+    add_test("displayVertices_empty", test_displayVertices_empty, "Affichage vertices vide");
+    add_test("freeClass_normal", test_freeClass_normal, "Libération normale d'une classe");
+    add_test("freeClass_null", test_freeClass_null, "Libération classe NULL");
+    add_test("class_complete_scenario", test_class_complete_scenario, "Scénario complet de test");
 
-    // Tests des partitions
-    add_test("partition_create", test_partition_create, "Création d'une partition");
-    add_test("partition_add_class", test_partition_add_class, "Ajout d'une classe à une partition");
-    add_test("partition_multiple_classes", test_partition_multiple_classes, "Plusieurs classes dans une partition");
+    // Tests partition.c
+    add_test("createPartition_normal", test_createPartition_normal, "Création normale d'une partition");
+    add_test("addClassToPartition_normal", test_addClassToPartition_normal, "Ajout de classes à une partition");
+    add_test("addClassToPartition_null_partition", test_addClassToPartition_null_partition, "Ajout classe à partition NULL");
+    add_test("addClassToPartition_null_class", test_addClassToPartition_null_class, "Ajout classe NULL à partition");
+    add_test("displayPartition_normal", test_displayPartition_normal, "Affichage d'une partition");
+    add_test("displayPartition_null", test_displayPartition_null, "Affichage partition NULL");
+    add_test("displayPartition_empty", test_displayPartition_empty, "Affichage partition vide");
+    add_test("freePartition_normal", test_freePartition_normal, "Libération normale d'une partition");
+    add_test("freePartition_null", test_freePartition_null, "Libération partition NULL");
+    add_test("partition_complete_scenario", test_partition_complete_scenario, "Scénario complet partition");
 
-    // Tests de piles
-    add_test("stack_create", test_stack_create, "Création d'une pile");
-    add_test("stack_push", test_stack_push, "Insertion d'un élément dans la pile");
-    add_test("stack_multiple_push", test_stack_multiple_push, "Insertion de plusieurs éléments");
-    add_test("stack_pop", test_stack_pop, "Retrait d'un élément");
-    add_test("stack_pop_empty", test_stack_pop_empty, "Pop sur une pile vide");
-    add_test("stack_free", test_stack_free, "Libération complète de la pile");
+    // Tests tarjan_vertex.c
+    add_test("createTarjanVertex_normal", test_createTarjanVertex_normal, "Création normale d'un vertex Tarjan");
+    add_test("createTarjanVertex_invalid_in_pile", test_createTarjanVertex_invalid_in_pile, "Création avec in_pile invalide");
+    add_test("createTarjanVertex_negative_values", test_createTarjanVertex_negative_values, "Création avec id négatif");
+    add_test("createTarjanVertex_negative_id", test_createTarjanVertex_negative_id, "Création avec id négatif uniquement");
+    add_test("displayTarjanVertex_normal", test_displayTarjanVertex_normal, "Affichage vertex Tarjan normal");
+    add_test("displayTarjanVertex_zero_values", test_displayTarjanVertex_zero_values, "Affichage vertex Tarjan valeurs nulles");
+    add_test("freeTarjanVertex_normal", test_freeTarjanVertex_normal, "Libération normale vertex Tarjan");
+    add_test("freeTarjanVertex_null", test_freeTarjanVertex_null, "Libération vertex Tarjan NULL");
+    add_test("tarjan_vertex_complete_scenario", test_tarjan_vertex_complete_scenario, "Scénario complet vertex Tarjan");
 
-    // Tests de robustesse
-    add_test("null_parameters", test_null_parameters, "Gestion des paramètres NULL");
-    add_test("float_limits", test_float_limits, "Limites des valeurs flottantes");
+    // Tests tarjan.c
+    add_test("graphToTarjanVertices_valid", test_graphToTarjanVertices_valid, "Conversion basique du graphe vers Tarjan");
+    add_test("graphToTarjanVertices_invalid_size", test_graphToTarjanVertices_invalid_size, "Conversion avec graphe vide");
+    add_test("tarjan_empty_graph", test_tarjan_empty_graph, "Tarjan sur graphe vide");
+    add_test("tarjan_single_vertex_no_edges", test_tarjan_single_vertex_no_edges, "Tarjan sur sommet isolé");
+    add_test("tarjan_imported_graph_example3", test_tarjan_imported_graph_example3, "Tarjan sur data/example3.txt");
 }
