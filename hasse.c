@@ -3,7 +3,7 @@
 
 
 void removeTransitiveLinks(t_link_array *p_link_array)
-//enleve des liens en trop
+//enlève des liens en trop
 
 {
     int i = 0;
@@ -51,7 +51,7 @@ void removeTransitiveLinks(t_link_array *p_link_array)
 }
 
 int *createArrayClass(int nb_vertex, t_link_array * array)
-//fonction qui permet de creer un tableau qui indique la classe de chaque sommet
+//fonction qui permet de créer un tableau qui indique la classe de chaque sommet
 
 {
     int *class = malloc(nb_vertex * sizeof(int));
@@ -72,7 +72,7 @@ int *createArrayClass(int nb_vertex, t_link_array * array)
 }
 
 void addLink(t_link_array *link_array,int dept,int dest) {
-    //fonction qui permet de creer les connections du diagramme de hasse
+    //fonction qui permet de créer les connections du diagramme de hasse
 
     if (link_array->log_size >= link_array->max_size)
     {
@@ -87,12 +87,11 @@ void addLink(t_link_array *link_array,int dept,int dest) {
 }
 
 int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links)
-//fonction qui permet de creer le diagramme de hasse
+//fonction qui permet de créer le diagramme de hasse
 
 {
     // Cree le tableau de classe
     int *class_array = createArrayClass(num_vertices, class_links);
-    if (!class_array) return; //si il n'y a pas de classe
 
     //
     for (int i = 0; i < num_vertices; i++)
@@ -105,18 +104,18 @@ int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array 
             int j = adj_list[i][k];
             int Cj = class_array[j];
 
-            // classe différente on ajoute le liens
+            // classe différente, on ajoute le lien
             if (Ci != Cj)
             {
-                add_link(class_links, Ci, Cj);
+                addLink(class_links, Ci, Cj);
             }
         }
     }
 
-    // Enleve les redonances
+    // Enlève les redondances
     removeTransitiveLinks(class_links);
 
-    return class_array;
+    return *class_array;
 }
 
 
