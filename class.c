@@ -85,13 +85,6 @@ void freeVertices(t_vertex *vertex) {
     free(vertex);
 }
 
-int isTransitory(t_class *class) {
-    while(class->next != NULL) {
-        if (class->vertexes->num_accessible == )
-    }
-    return 0
-
-}
 
 void freeClass(t_class *class) {
     debugPrint(DEBUG_CLASS, "freeClass: start");
