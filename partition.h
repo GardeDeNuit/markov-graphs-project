@@ -3,6 +3,8 @@
 
 #include "class.h"
 
+#define DEBUG_PARTITION 0
+
 typedef struct s_partition{
     t_class *classes;
 } t_partition;
@@ -12,4 +14,5 @@ void freeClasses(t_class *);
 void freePartition(t_partition *);
 void addClassToPartition(t_partition *, t_class *);
 void displayPartition(t_partition *);
+void generateClassName(t_partition, char *, const char *);
 #endif //PARTITION_H

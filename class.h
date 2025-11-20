@@ -3,21 +3,28 @@
 
 #include <stdlib.h>
 
+#define DEBUG_CLASS 0
+
+#define CLASS_NAME_MAX_SIZE 32
+#define CLASS_NAME_DEFAULT "CLASS"
+
 typedef struct s_vertex {
     int value;
     struct s_vertex *next;
 } t_vertex;
 
 typedef struct s_class {
-    char name[10];
-    t_vertex *vertexes;
+    char name[CLASS_NAME_MAX_SIZE];
+    t_vertex *vertices;
     struct s_class *next;
 } t_class;
 
 t_class* createClass(const char *name);
+t_vertex* createVertex(int value);
 void addVertexToClass(t_class *class, int value);
+void displayVertices(t_vertex *vertex);
 void displayClass(t_class *class);
-void freeVertexes(t_vertex *vertex);
+void freeVertices(t_vertex *vertex);
 void freeClass(t_class *class);
 
 #endif //CLASS_H
