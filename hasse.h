@@ -21,6 +21,7 @@ void addLink(t_link_array *link_array, int dept, int dest);
 int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links);
 void removeTransitiveLinks(t_link_array *p_link_array);
 int createArrayClass(int nb_sommets, t_link_array *arr);
+int StatFunction(int * class_array, int num_vertices);
 
 /**
  * @brief Creates a link array from the given partition and graph.

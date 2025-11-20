@@ -118,3 +118,9 @@ int createClassLinks(num_vertices,**adj_list,*adj_size,*class_links)
 
     return class_array;
 }
+
+int StatFunction(class_array, num_vertices) {
+    for (int i = 0; i < num_vertices; i++) {
+        class_array[i];
+    }
+}
