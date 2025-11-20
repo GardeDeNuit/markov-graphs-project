@@ -14,4 +14,5 @@ void freeClasses(t_class *);
 void freePartition(t_partition *);
 void addClassToPartition(t_partition *, t_class *);
 void displayPartition(t_partition *);
+void generateClassName(t_partition, char *, const char *);
 #endif //PARTITION_H

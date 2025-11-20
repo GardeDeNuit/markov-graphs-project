@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 t_partition * createPartition(void){
     debugPrint(DEBUG_PARTITION, "createPartition: start");
@@ -72,4 +73,18 @@ void displayPartition(t_partition *partition){
         curr = curr->next;
     }
     debugPrint(DEBUG_PARTITION, "displayPartition: done");
+}
+
+void generateClassName(t_partition partition, char *buffer, const char *name) {
+    if (buffer == NULL) return;
+    if (name == NULL && strlen(name) >= CLASS_NAME_MAX_SIZE) return;
+    int index = 0;
+    // Calcul du nombre de classes existantes pour générer un nom unique
+    t_class *curr = partition.classes;
+    while (curr != NULL) {
+        index++;
+        curr = curr->next;
+    }
+    index++; // Incrémenter pour le nouveau nom
+    snprintf(buffer, CLASS_NAME_MAX_SIZE, "%s_%d", name, index);
 }
