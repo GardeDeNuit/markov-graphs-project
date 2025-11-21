@@ -246,6 +246,28 @@ int powerMatrix(t_matrix m, int power, t_matrix *result) {
     return powerMatrixRec(m, power, result);
 }
 
-t_matrix createMatrixFromGraph(t_graph g) {
-    return createEmptyMatrix();
+int createMatrixFromGraph(t_graph g, t_matrix *result) {
+    if (result == NULL) {
+        fprintf(stderr, "createMatrixFromGraph: no result matrix provided\n");
+        return -1;
+    }
+
+    if (createResultMatrix(result, g.size, g.size) < 0) return -1;
+
+    int vertex_id;
+    for (int i = 0; i < g.size; i++) {
+        vertex_id = i + 1;
+        t_list* curr_list = getNeighbors(&g, vertex_id);
+        if (curr_list == NULL) {
+            fprintf(stderr, "createMatrixFromGraph: failed to access vertex neighbors (vertex: %d)\n", vertex_id);
+            return -1;
+        }
+        t_cell* curr = curr_list->head;
+        while (curr != NULL) {
+            // (curr->vertex - 1) = indice du vertex courant dans la matrice
+            result->data[i][curr->vertex - 1] = curr->weight;
+            curr = curr->next;
+        }
+    }
+    return 1;
 }

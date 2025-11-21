@@ -21,7 +21,7 @@ int createResultMatrix(t_matrix *result, int rows, int cols);
 void displayMatrix(t_matrix matrix);
 void displayMatrixData(t_matrix matrix);
 
-t_matrix createMatrixFromGraph(t_graph graph);
+int createMatrixFromGraph(t_graph graph, t_matrix *result);
 
 int copyMatrix(t_matrix src, t_matrix *dest);
 int copyMatrixParamsValid(t_matrix src, t_matrix *dest);
