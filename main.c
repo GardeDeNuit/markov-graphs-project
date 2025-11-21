@@ -198,6 +198,17 @@ int main(void) {
     freeMatrix(&incomp1);
     freeMatrix(&incomp2);
 
+    printf("=== TEST 12: Creation à partir d'un graphe ===\n");
+    printf("G1 à partir de exemple1.txt:\n");
+    t_graph g1 = importGraphFromFile("..\\data\\exemple1.txt");
+    displayGraph(g1);
+    t_matrix mg1;
+    res = createMatrixFromGraph(g1, &mg1);
+    displayMatrix(mg1);
+    freeMatrix(&mg1);
+    printf("Retour: %d (attendu: 1)\n", res);
+
+
     printf("\n=== TOUS LES TESTS TERMINES ===\n");
     return 0;
 }
