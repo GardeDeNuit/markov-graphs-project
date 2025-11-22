@@ -38,25 +38,26 @@ void displayGraph(t_graph graph) {
 }
 
 // Ajoute une arête directed src -> dest avec un poids
-void addEdge(t_graph *graph, int src, int dest, double weight) {
+int addEdge(t_graph *graph, int src, int dest, double weight) {
     if (graph == NULL) {
         fprintf(stderr, "addEdge: graph is NULL\n");
-        return;
+        return -1;
     }
     if (graph->values == NULL) {
         fprintf(stderr, "addEdge: graph values not initialized\n");
-        return;
+        return -1;
     }
     if (src < 1 || src > graph->size) {
         fprintf(stderr, "addEdge: source vertex %d out of range [1..%d]\n", src, graph->size);
-        return;
+        return -1;
     }
     if (dest < 1 || dest > graph->size) {
         fprintf(stderr, "addEdge: dest vertex %d out of range [1..%d]\n", dest, graph->size);
-        return;
+        return -1;
     }
     // addCell expects a t_list* for the source vertex
     addCell(&graph->values[src - 1], dest, weight);
+    return 1;
 }
 
 // Retourne la liste des voisins du sommet src (ou NULL en cas d'erreur)
@@ -91,11 +92,14 @@ int hasEdge(t_graph graph, int src, int dest) {
 }
 
 // Libère toute la mémoire associée au graphe
-void freeGraph(t_graph *graph) {
-    if (graph == NULL) return;
+int freeGraph(t_graph *graph) {
+    if (graph == NULL) {
+        fprintf(stderr, "freeGraph: graph pointer is NULL\n");
+        return -1;
+    }
     if (graph->values == NULL) {
         graph->size = 0;
-        return;
+        return -1;
     }
     for (int i = 0; i < graph->size; ++i) {
         freeList(&graph->values[i]);
@@ -103,36 +107,43 @@ void freeGraph(t_graph *graph) {
     free(graph->values);
     graph->values = NULL;
     graph->size = 0;
+    return 1;
 }
 
 // Lit un graphe à partir d'un fichier
 t_graph importGraphFromFile(const char* path) {
-    FILE *file = fopen(path, "rt"); // read-only, text
+    FILE *file = fopen(path, "rt");
     int nbvert, src, dest;
     double weight;
     t_graph graph;
-    if (file==NULL){
-        perror("importGraphFromFile: Could not open file for reading");
+
+    if (file == NULL) {
+        fprintf(stderr, "importGraphFromFile: could not open file '%s'\n", path);
         return createEmptyGraph();
     }
 
     // first line contains number of vertices
-    if (fscanf(file, "%d", &nbvert) != 1){
-        fprintf(stderr, "importGraphFromFile: Could not read number of vertices from %s\n", path);
+    if (fscanf(file, "%d", &nbvert) != 1) {
+        fprintf(stderr, "importGraphFromFile: could not read number of vertices from '%s'\n", path);
         fclose(file);
         return createEmptyGraph();
     }
 
     // valider le nombre de sommets lu
     if (nbvert < 1) {
-        fprintf(stderr, "importGraphFromFile: invalid number of vertices (%d) in %s\n", nbvert, path);
+        fprintf(stderr, "importGraphFromFile: invalid number of vertices (%d) in '%s'\n", nbvert, path);
         fclose(file);
         return createEmptyGraph();
     }
 
     graph = createGraph(nbvert);
+    if (graph.values == NULL) {
+        fprintf(stderr, "importGraphFromFile: failed to create graph\n");
+        fclose(file);
+        return createEmptyGraph();
+    }
 
-    while (fscanf(file, "%d %d %lf", &src, &dest, &weight) == 3){
+    while (fscanf(file, "%d %d %lf", &src, &dest, &weight) == 3) {
         if (src < 1 || src > graph.size || dest < 1 || dest > graph.size) {
             fprintf(stderr, "importGraphFromFile: edge with invalid vertices (%d -> %d) ignored\n", src, dest);
             continue;
@@ -143,20 +154,29 @@ t_graph importGraphFromFile(const char* path) {
     return graph;
 }
 
-int is_graphMarkov(t_graph graph){
-    double sum = 0.00;
+int isMarkovGraph(t_graph graph) {
+    if (graph.values == NULL) {
+        fprintf(stderr, "isMarkovGraph: graph is not initialized\n");
+        return 0;
+    }
+
+    double sum = 0.0;
     int isMarkov = 1;
-    for (int i=0;i<graph.size;i++){
-        sum = sumValues(graph.values[i]);
+
+    for (int i = 0; i < graph.size; i++) {
+        sum = sumListValues(graph.values[i]);
+        // Tolérance pour les erreurs
         if (sum < 0.99 || sum > 1.00) {
-            if (isMarkov) printf("Le graphe n'est pas un graphe de Markov.\n");
-            printf("La somme des probabilités du sommet %d est %.5f\n", i+1, sum);
+            if (isMarkov) {
+                printf("The graph is not a Markov graph.\n");
+            }
+            printf("Sum of probabilities for vertex %d is %.5f (expected 1.0)\n", i + 1, sum);
             isMarkov = 0;
         }
     }
 
     if (isMarkov == 1) {
-        printf("Le graphe est un graphe de Markov.\n");
+        printf("The graph is a Markov graph.\n");
     }
     return isMarkov;
 }
