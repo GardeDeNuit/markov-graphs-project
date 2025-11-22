@@ -55,68 +55,46 @@ void appendGraphEdges(const t_graph graph, FILE *file) {
     }
 }
 
-int exportHasseDiagramToMermaidFile(t_link_array *links, t_partition *partition, int num_classes, const char* path)
+char** buildClassLabels(t_partition *partition, int num_classes)
 {
-    FILE *file = fopen(path, "w");
-
-    if (file == NULL) {
-        fprintf(stderr, "exportHasseDiagramToMermaidFile: Could not open file for writing\n");
-        return 0;
-    }
-
-    // En-tête Mermaid
-    fprintf(file, "---\n");
-    fprintf(file, "config:\n");
-    fprintf(file, "layout: elk\n");
-    fprintf(file, "theme: neo\n");
-    fprintf(file, "look: neo\n");
-    fprintf(file, "---\n\n");
-    fprintf(file, "flowchart LR\n");
-
-    // Créer les étiquettes des nœuds (composantes)
     char **class_labels = malloc(num_classes * sizeof(char*));
-
-    int class_num = 0;
     t_class *curr_class = partition->classes;
 
-    while (curr_class != NULL && class_num < num_classes)
+    for (int i = 0; i < num_classes && curr_class != NULL; i++, curr_class = curr_class->next)
     {
-        class_labels[class_num] = malloc(256 * sizeof(char));
-        memset(class_labels[class_num], 0, 256);
+        t_vertex *v = curr_class->vertices;
+        int len = 0;
+        class_labels[i] = malloc(256);
+        len += snprintf(class_labels[i] + len, 256 - len, "{");
 
-        // Construire la chaîne avec les sommets
-        strcpy(class_labels[class_num], "{");
-
-        t_vertex *curr_vertex = curr_class->vertices;
         int first = 1;
-        while (curr_vertex != NULL)
+        while (v != NULL)
         {
-            if (!first) strcat(class_labels[class_num], ",");
-
-            char vertex_str[16];
-            snprintf(vertex_str, sizeof(vertex_str), "%d", curr_vertex->value);
-            strcat(class_labels[class_num], vertex_str);
-
+            len += snprintf(class_labels[i] + len, 256 - len, "%s%d", first ? "" : ",", v->value);
             first = 0;
-            curr_vertex = curr_vertex->next;
+            v = v->next;
         }
 
-        strcat(class_labels[class_num], "}");
-
-        class_num++;
-        curr_class = curr_class->next;
+        snprintf(class_labels[i] + len, 256 - len, "}");
     }
 
-    // Écrire les nœuds
+    return class_labels;
+}
+
+
+void writeNodes(FILE *file, char **class_labels, int num_classes)
+{
     for (int i = 0; i < num_classes; i++)
     {
-        char node_id = 'A' + i;  // A, B, C, D, E, F, ...
+        char node_id = 'A' + i;
         fprintf(file, "%c(\"%s\")\n", node_id, class_labels[i]);
     }
-
     fprintf(file, "\n");
+}
 
-    // Écrire les arêtes
+
+void writeEdges(FILE *file, t_link_array *links)
+{
     for (int i = 0; i < links->log_size; i++)
     {
         int from = links->links[i].src_nb;
@@ -127,14 +105,40 @@ int exportHasseDiagramToMermaidFile(t_link_array *links, t_partition *partition,
 
         fprintf(file, "%c --> %c\n", from_id, to_id);
     }
+}
 
-    fclose(file);
 
-    // Libérer la mémoire
-    for (int i = 0; i < num_classes; i++) {
+void freeClassLabels(char **class_labels, int num_classes)
+{
+    for (int i = 0; i < num_classes; i++)
+    {
         free(class_labels[i]);
     }
     free(class_labels);
+}
+
+int exportHasseDiagramToMermaidFile(t_link_array *links, t_partition *partition, int num_classes, const char* path)
+{
+    FILE *file = fopen(path, "w");
+    if (file == NULL)
+    {
+        fprintf(stderr, "exportHasseDiagramToMermaidFile: Could not open file for writing\n");
+        return 0;
+    }
+
+    // En-tête Mermaid
+    fprintf(file, "---\nconfig:\nlayout: elk\ntheme: neo\nlook: neo\n---\n\nflowchart LR\n");
+
+    // Construire les labels
+    char **class_labels = buildClassLabels(partition, num_classes);
+
+    // Écrire les nœuds et les arêtes
+    writeNodes(file, class_labels, num_classes);
+    writeEdges(file, links);
+
+    // Libérer la mémoire et fermer le fichier
+    freeClassLabels(class_labels, num_classes);
+    fclose(file);
 
     return 1;
 }
