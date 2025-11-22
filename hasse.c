@@ -3,6 +3,12 @@
 #include <string.h>
 #include "hasse.h"
 
+/**
+ * @brief Remove redundant transitive links from a link array.
+ * @param p_link_array Pointer to the link array to be cleaned.
+ * @return Nothing.
+ */
+
 static void removeTransitiveLinks(t_link_array *p_link_array)
 {
     int i = 0;
@@ -47,6 +53,14 @@ static void removeTransitiveLinks(t_link_array *p_link_array)
     }
 }
 
+/**
+ * @brief Check if a link already exists between two nodes.
+ * @param link_array Link array to search in.
+ * @param dept Source node.
+ * @param dest Destination node.
+ * @return 1 if the link exists, 0 otherwise.
+ */
+
 static int linkExists(t_link_array *link_array, int dept, int dest)
 {
     for (int i = 0; i < link_array->log_size; i++)
@@ -58,6 +72,14 @@ static int linkExists(t_link_array *link_array, int dept, int dest)
     }
     return 0;
 }
+
+/**
+ * @brief Add a link between two nodes in the link array.
+ * @param link_array Link array to update.
+ * @param dept Source node.
+ * @param dest Destination node.
+ * @return Nothing.
+ */
 
 static void addLink(t_link_array *link_array, int dept, int dest)
 {
@@ -76,7 +98,13 @@ static void addLink(t_link_array *link_array, int dept, int dest)
     link_array->log_size++;
 }
 
-// Crée un tableau pour stocker les noms/sommets des classes
+/**
+ * @brief Build an array of strings representing class names.
+ * @param partition Partition containing the classes.
+ * @param num_classes Number of classes.
+ * @return Array of strings representing class names.
+ */
+
 static char** buildName(t_partition *partition, int num_classes)
 {
     char **class_names = malloc(num_classes * sizeof(char*));
@@ -116,6 +144,15 @@ static char** buildName(t_partition *partition, int num_classes)
     return class_names;
 }
 
+/**
+ * @brief Display the Hasse diagram after removing redundant links.
+ * @param links Link array between classes.
+ * @param partition Partition containing the classes.
+ * @param class_array Array of class indices.
+ * @param num_classes Number of classes.
+ * @return Nothing.
+ */
+
 static void displayHasse(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
 {
     printf("\n=== Diagramme de Hasse (après suppression des redondances) ===\n");
@@ -142,7 +179,13 @@ static void displayHasse(t_link_array *links, t_partition *partition, int *class
     free(class_names);
 }
 
-// Définition des caractéristiques du graph
+/**
+ * @brief Determine the type of each class (persistent or transient).
+ * @param class_array Array of class indices.
+ * @param num_vertices Number of vertices.
+ * @param class_links Link array between classes.
+ * @return Array of class types (0 = persistent, 1 = transient).
+ */
 
 static int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
     int *type_array = malloc(num_vertices * sizeof(int));
@@ -164,6 +207,14 @@ static int* ClassType(int* class_array,int num_vertices,t_link_array class_links
     return type_array;
 }
 
+/**
+ * @brief Check if a class is absorbing.
+ * @param class_sizes Array of class sizes.
+ * @param class_nb Index of the class to check.
+ * @param type_array Array of class types.
+ * @return 1 if absorbing, 0 otherwise.
+ */
+
 static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
     // Vérifie si une classe est absorbante
     for (int i = 0; i < class_sizes[class_nb]; i++) {
@@ -173,6 +224,13 @@ static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
     }
     return 1; // Absorbant
 }
+
+/**
+ * @brief Check if the graph is irreducible.
+ * @param class_array Array of class indices.
+ * @param num_vertices Number of vertices.
+ * @return 1 if irreducible, 0 otherwise.
+ */
 
 static int isIrreductible(int* class_array,int num_vertices) {
     // Vérifie si le graphe est irréductible
@@ -185,9 +243,9 @@ static int isIrreductible(int* class_array,int num_vertices) {
     return 1; // Irréductible
 }
 
-// Fonctions publiques
+// Public Fonction
 
-// Crée un tableau : class_array[sommet] = numéro de classe
+
 int* makeClassArray(t_graph *graph, t_partition *partition)
 {
     int *class_array = malloc(graph->size * sizeof(int));

@@ -20,15 +20,14 @@ struct s_link_array {
 
 typedef struct s_link_array t_link_array;
 
-// Crée un tableau : class_array[sommet] = numéro de classe
-int* makeClassArray(t_graph *graph, t_partition *partition);
-
 /**
- * @brief Creates a link array from the given partition and graph.
- *
- * @param part The partition of the graph.
- * @param graph The adjacency list representation of the graph.
- * @return The created link array.
+ * @brief Build an array mapping each vertex to its class index.
+ * @param graph Pointer to the graph structure.
+ * @param partition Partition containing the classes and their vertices.
+ * @return Dynamically allocated array of size graph->size, where each entry
+ *         stores the class index of the corresponding vertex (0-based).
+ *         The caller is responsible for freeing this array.
  */
+int* makeClassArray(t_graph *graph, t_partition *partition);
 
 #endif
