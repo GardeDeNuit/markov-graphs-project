@@ -1,56 +1,51 @@
 #include "class.h"
-#include "utils.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 t_class* createClass(int class_id) {
-    debugPrint(DEBUG_CLASS, "createClass: start");
     t_class* class = (t_class *)malloc(sizeof(t_class));
     if (class == NULL) {
-        debugPrint(DEBUG_CLASS, "createClass: allocation failed");
         perror("createClass: allocation failed");
         return NULL;
     }
     class->id = class_id;
     class->vertices = NULL;
     class->next = NULL;
-    debugPrint(DEBUG_CLASS, "createClass: success");
     return class;
 }
 
 t_vertex* createVertex(int value) {
-    debugPrint(DEBUG_CLASS, "createVertex: start");
     t_vertex* vertex = (t_vertex *)malloc(sizeof(t_vertex));
     if (vertex == NULL) {
-        debugPrint(DEBUG_CLASS, "createVertex: allocation failed");
         perror("createVertex: allocation failed");
         return NULL;
     }
     vertex->value = value;
     vertex->next = NULL;
-    debugPrint(DEBUG_CLASS, "createVertex: success");
     return vertex;
 }
 
-void addVertexToClass(t_class *class, int value) {
-    debugPrint(DEBUG_CLASS, "addVertexToClass: start");
+int addVertexToClass(t_class *class, int value) {
     if (class == NULL) {
-        debugPrint(DEBUG_CLASS, "addVertexToClass: class is NULL");
-        fprintf(stderr,"addVertexToClass: class is NULL\n");
-        return;
+        fprintf(stderr, "addVertexToClass: class pointer is NULL\n");
+        return -1;
     }
     t_vertex *new_vertex = createVertex(value);
     if (new_vertex == NULL) {
-        debugPrint(DEBUG_CLASS, "addVertexToClass: createVertex failed");
-        return;
+        fprintf(stderr, "addVertexToClass: failed to create vertex\n");
+        return -1;
     }
     new_vertex->next = class->vertices;
     class->vertices = new_vertex;
-    debugPrint(DEBUG_CLASS, "addVertexToClass: vertex added");
+    return 1;
 }
 
-void displayVertices(t_vertex *vertex) {
-    debugPrint(DEBUG_CLASS, "displayVertices: start");
+/**
+ * @brief Displays all vertices in a linked list
+ * @param vertex Pointer to the first vertex to display
+ */
+static void displayVertices(t_vertex *vertex) {
     t_vertex *curr = vertex;
     while (curr != NULL) {
         if (curr->next == NULL)
@@ -62,29 +57,27 @@ void displayVertices(t_vertex *vertex) {
 }
 
 void displayClass(t_class *class) {
-    debugPrint(DEBUG_CLASS, "displayClass: start");
     if (class == NULL) {
-        debugPrint(DEBUG_CLASS, "displayClass: class is NULL");
+        fprintf(stderr, "displayClass: class pointer is NULL\n");
         return;
     }
     printf("Class %d: {", class->id);
     displayVertices(class->vertices);
     printf("}\n");
-    debugPrint(DEBUG_CLASS, "displayClass: done");
 }
 
 void freeVertices(t_vertex *vertex) {
-    debugPrint(DEBUG_CLASS, "freeVertices: start");
     if (vertex == NULL) return;
     freeVertices(vertex->next);
     free(vertex);
 }
 
-
-void freeClass(t_class *class) {
-    debugPrint(DEBUG_CLASS, "freeClass: start");
-    if (class == NULL) return;
+int freeClass(t_class *class) {
+    if (class == NULL) {
+        fprintf(stderr, "freeClass: class pointer is NULL\n");
+        return -1;
+    }
     freeVertices(class->vertices);
     free(class);
-    debugPrint(DEBUG_CLASS, "freeClass: done");
+    return 1;
 }
