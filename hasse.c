@@ -76,35 +76,6 @@ static void addLink(t_link_array *link_array, int dept, int dest)
     link_array->log_size++;
 }
 
-// Crée un tableau : class_array[sommet] = numéro de classe
-int* makeClassArray(t_graph *graph, t_partition *partition)
-{
-    int *class_array = malloc(graph->size * sizeof(int));
-    memset(class_array, -1, graph->size * sizeof(int));
-
-    int class_num = 0;
-    t_class *curr_class = partition->classes;
-
-    while (curr_class != NULL)
-    {
-        // Parcourir tous les sommets de cette classe
-        t_vertex *curr_vertex = curr_class->vertices;
-        while (curr_vertex != NULL)
-        {
-            int vertex_id = curr_vertex->value;
-            // vertex_id est 1-based, class_array est 0-based
-
-            class_array[vertex_id - 1] = class_num;
-            curr_vertex = curr_vertex->next;
-        }
-
-        class_num++;
-        curr_class = curr_class->next;
-    }
-
-    return class_array;
-}
-
 // Crée un tableau pour stocker les noms/sommets des classes
 static char** buildName(t_partition *partition, int num_classes)
 {
@@ -212,4 +183,35 @@ int isIrreductible(int* class_array,int num_vertices) {
         }
     }
     return 1; // Irréductible
+}
+
+// Fonctions publiques
+
+// Crée un tableau : class_array[sommet] = numéro de classe
+int* makeClassArray(t_graph *graph, t_partition *partition)
+{
+    int *class_array = malloc(graph->size * sizeof(int));
+    memset(class_array, -1, graph->size * sizeof(int));
+
+    int class_num = 0;
+    t_class *curr_class = partition->classes;
+
+    while (curr_class != NULL)
+    {
+        // Parcourir tous les sommets de cette classe
+        t_vertex *curr_vertex = curr_class->vertices;
+        while (curr_vertex != NULL)
+        {
+            int vertex_id = curr_vertex->value;
+            // vertex_id est 1-based, class_array est 0-based
+
+            class_array[vertex_id - 1] = class_num;
+            curr_vertex = curr_vertex->next;
+        }
+
+        class_num++;
+        curr_class = curr_class->next;
+    }
+
+    return class_array;
 }

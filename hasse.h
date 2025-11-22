@@ -17,6 +17,7 @@ struct s_link_array {
     int max_size;
 };
 
+
 typedef struct s_link_array t_link_array;
 
 // Crée un tableau : class_array[sommet] = numéro de classe
