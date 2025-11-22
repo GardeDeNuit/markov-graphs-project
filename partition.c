@@ -1,7 +1,6 @@
 #include "partition.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 t_partition * createPartition(void){
     t_partition *partition = malloc(sizeof(t_partition));
