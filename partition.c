@@ -1,88 +1,74 @@
 #include "partition.h"
-#include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 t_partition * createPartition(void){
-    debugPrint(DEBUG_PARTITION, "createPartition: start");
     t_partition *partition = malloc(sizeof(t_partition));
     if (partition == NULL) {
-        debugPrint(DEBUG_PARTITION, "createPartition: allocation failed");
-        perror("createPartition : allocation failed");
+        fprintf(stderr, "createPartition: memory allocation failed\n");
         return NULL;
     }
     partition->classes = NULL;
-    debugPrint(DEBUG_PARTITION, "createPartition: success");
     return partition;
 }
 
-void freeClasses(t_class *class){
-    debugPrint(DEBUG_PARTITION, "freeClasses: start");
+/**
+ * @brief Recursively frees all classes in a linked list
+ * @param class Pointer to the first class to free
+ */
+static void freeClasses(t_class *class){
     if (class == NULL) {
-        debugPrint(DEBUG_PARTITION, "freeClasses: class is NULL");
         return;
     }
-    debugPrint(DEBUG_PARTITION, "freeClasses: freeing recursively");
     freeClasses(class->next);
     freeClass(class);
-    debugPrint(DEBUG_PARTITION, "freeClasses: done");
 }
 
-void freePartition(t_partition *partition){
-    debugPrint(DEBUG_PARTITION, "freePartition: start");
+int freePartition(t_partition *partition){
     if (partition == NULL) {
-        debugPrint(DEBUG_PARTITION, "freePartition: partition is NULL");
-        return;
+        fprintf(stderr, "freePartition: partition pointer is NULL\n");
+        return -1;
     }
-    debugPrint(DEBUG_PARTITION, "freePartition: freeing classes");
     freeClasses(partition->classes);
     free(partition);
-    debugPrint(DEBUG_PARTITION, "freePartition: done");
+    return 1;
 }
 
-void addClassToPartition(t_partition *partition, t_class *class){
-    debugPrint(DEBUG_PARTITION, "addClassToPartition: start");
+int addClassToPartition(t_partition *partition, t_class *class){
     if (partition == NULL) {
-        debugPrint(DEBUG_PARTITION, "addClassToPartition: partition is NULL");
-        fprintf(stderr, "addClassToPartition: partition is NULL\n");
-        return;
+        fprintf(stderr, "addClassToPartition: partition pointer is NULL\n");
+        return -1;
     }
     if (class == NULL) {
-        debugPrint(DEBUG_PARTITION, "addClassToPartition: class is NULL");
-        fprintf(stderr, "addClassToPartition: class is NULL\n");
-        return;
+        fprintf(stderr, "addClassToPartition: class pointer is NULL\n");
+        return -1;
     }
-    debugPrint(DEBUG_PARTITION, "addClassToPartition: adding class to partition");
     class->next = partition->classes;
     partition->classes = class;
-    debugPrint(DEBUG_PARTITION, "addClassToPartition: success");
+    return 1;
 }
 
 void displayPartition(t_partition *partition){
-    debugPrint(DEBUG_PARTITION, "displayPartition: start");
     if (partition == NULL) {
-        debugPrint(DEBUG_PARTITION, "displayPartition: partition is NULL");
-        fprintf(stderr, "displayPartition: partition is NULL\n");
+        fprintf(stderr, "displayPartition: partition pointer is NULL\n");
         return;
     }
-    debugPrint(DEBUG_PARTITION, "displayPartition: displaying classes");
     t_class *curr = partition->classes;
     while (curr != NULL) {
         displayClass(curr);
         curr = curr->next;
     }
-    debugPrint(DEBUG_PARTITION, "displayPartition: done");
 }
 
 int generateClassId(t_partition partition) {
     int index = 0;
-    // Calcul du nombre de classes existantes pour générer un id unique
+    // Calculate the number of existing classes to generate a unique id
     t_class *curr = partition.classes;
     while (curr != NULL) {
         index++;
         curr = curr->next;
     }
-    index++; // Incrémenter pour le nouvel id
+    index++; // Increment for the new id
     return index;
 }
