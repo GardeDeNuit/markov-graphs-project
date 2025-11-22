@@ -110,9 +110,8 @@ static void extractStronglyConnectedComponent(
 
     // Creation d'une nouvelle classe pour la SCC
     // On commence par générer un nom unique
-    char* class_name[CLASS_NAME_MAX_SIZE];
-    generateClassName(*partition, class_name, CLASS_NAME_DEFAULT);
-    t_class *new_class = createClass(class_name);
+    int new_class_id = generateClassId(*partition);
+    t_class *new_class = createClass(new_class_id);
     if (new_class == NULL) return;
 
     int w_id;
