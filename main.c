@@ -88,42 +88,6 @@ int main(void) {
     // [1*7+2*9+3*11  1*8+2*10+3*12]   = [58  64]
     // [4*7+5*9+6*11  4*8+5*10+6*12]   = [139 154]
 
-    printf("=== TEST 6: subtractMatrices (3x3 - 3x3) ===\n");
-    t_matrix c = createMatrix(3, 3);
-    setMatrixValue(&c, 0, 0, 10.0);
-    setMatrixValue(&c, 0, 1, 20.0);
-    setMatrixValue(&c, 0, 2, 30.0);
-    setMatrixValue(&c, 1, 0, 40.0);
-    setMatrixValue(&c, 1, 1, 50.0);
-    setMatrixValue(&c, 1, 2, 60.0);
-    setMatrixValue(&c, 2, 0, 70.0);
-    setMatrixValue(&c, 2, 1, 80.0);
-    setMatrixValue(&c, 2, 2, 90.0);
-    printf("Matrice C:\n");
-    displayMatrix(c);
-
-    t_matrix d = createMatrix(3, 3);
-    setMatrixValue(&d, 0, 0, 1.0);
-    setMatrixValue(&d, 0, 1, 2.0);
-    setMatrixValue(&d, 0, 2, 3.0);
-    setMatrixValue(&d, 1, 0, 4.0);
-    setMatrixValue(&d, 1, 1, 5.0);
-    setMatrixValue(&d, 1, 2, 6.0);
-    setMatrixValue(&d, 2, 0, 7.0);
-    setMatrixValue(&d, 2, 1, 8.0);
-    setMatrixValue(&d, 2, 2, 9.0);
-    printf("Matrice D:\n");
-    displayMatrix(d);
-
-    t_matrix sub_result;
-    subtractMatrices(c, d, &sub_result);
-    printf("Resultat C - D:\n");
-    displayMatrix(sub_result);
-    // Attendu (3x3):
-    // 9.00  18.00 27.00
-    // 36.00 45.00 54.00
-    // 63.00 72.00 81.00
-
     printf("=== TEST 7: powerMatrix (matrice^2) ===\n");
     t_matrix e = createMatrix(2, 2);
     setMatrixValue(&e, 0, 0, 1.0);
@@ -167,9 +131,6 @@ int main(void) {
     freeMatrix(&a);
     freeMatrix(&b);
     freeMatrix(&mult_result);
-    freeMatrix(&c);
-    freeMatrix(&d);
-    freeMatrix(&sub_result);
     freeMatrix(&e);
     freeMatrix(&pow_result);
     freeMatrix(&pow0_result);
@@ -207,6 +168,37 @@ int main(void) {
     displayMatrix(mg1);
     freeMatrix(&mg1);
     printf("Retour: %d (attendu: 1)\n", res);
+
+    printf("=== TEST 13: diffMatrices (3x3 - 3x3) ===\n");
+    t_matrix c = createMatrix(3, 3);
+    setMatrixValue(&c, 0, 0, 10.0);
+    setMatrixValue(&c, 0, 1, 20.0);
+    setMatrixValue(&c, 0, 2, 30.0);
+    setMatrixValue(&c, 1, 0, 40.0);
+    setMatrixValue(&c, 1, 1, 50.0);
+    setMatrixValue(&c, 1, 2, 60.0);
+    setMatrixValue(&c, 2, 0, 70.0);
+    setMatrixValue(&c, 2, 1, 80.0);
+    setMatrixValue(&c, 2, 2, 90.0);
+    printf("Matrice C:\n");
+    displayMatrix(c);
+
+    t_matrix d = createMatrix(3, 3);
+    setMatrixValue(&d, 0, 0, 1.0);
+    setMatrixValue(&d, 0, 1, 2.0);
+    setMatrixValue(&d, 0, 2, 3.0);
+    setMatrixValue(&d, 1, 0, 4.0);
+    setMatrixValue(&d, 1, 1, 5.0);
+    setMatrixValue(&d, 1, 2, 6.0);
+    setMatrixValue(&d, 2, 0, 7.0);
+    setMatrixValue(&d, 2, 1, 8.0);
+    setMatrixValue(&d, 2, 2, 9.0);
+    printf("Matrice D:\n");
+    displayMatrix(d);
+
+    double diff_result;
+    diff_result = diffMatrices(c, d);
+    printf("Resultat diff(C, D): %.2f (Attendu : 405.0)\n", diff_result);
 
 
     printf("\n=== TOUS LES TESTS TERMINES ===\n");
