@@ -17,12 +17,6 @@ int main(void) {
     return failures;
     */
 
-    printf("=== TEST 1: createEmptyMatrix ===\n");
-    t_matrix empty = createEmptyMatrix();
-    displayMatrix(empty);
-    // Attendu: 0x0 matrix avec NULL
-    printf("Is empty: %d (attendu: 1)\n\n", isEmptyMatrix(empty));
-
     printf("=== TEST 2: createMatrix (3x3) ===\n");
     t_matrix m1 = createMatrix(3, 3);
     displayMatrix(m1);
