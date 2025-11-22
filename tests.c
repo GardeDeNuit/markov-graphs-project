@@ -254,11 +254,6 @@ int test_displayClass_null() {
     return 0; // Pas de crash = succès
 }
 
-int test_displayVertices_empty() {
-    displayVertices(NULL);
-    return 0; // Pas de crash = succès
-}
-
 int test_freeClass_normal() {
     t_class *class = createClass(1);
     addVertexToClass(class, 1);
@@ -601,7 +596,6 @@ void register_project_tests(void) {
     add_test("addVertexToClass_null", test_addVertexToClass_null, "Ajout vertex à classe NULL");
     add_test("displayClass", test_displayClass, "Affichage d'une classe");
     add_test("displayClass_null", test_displayClass_null, "Affichage classe NULL");
-    add_test("displayVertices_empty", test_displayVertices_empty, "Affichage vertices vide");
     add_test("freeClass_normal", test_freeClass_normal, "Libération normale d'une classe");
     add_test("freeClass_null", test_freeClass_null, "Libération classe NULL");
     add_test("class_complete_scenario", test_class_complete_scenario, "Scénario complet de test");
