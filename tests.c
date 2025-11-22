@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "tarjan.h"
 #include "tarjan_vertex.h"
+#include "hasse.h"
 
 static test_entry g_tests[256];
 static int g_test_count = 0;
@@ -565,7 +566,7 @@ int test_tarjan_single_vertex_no_edges() {
 }
 
 int test_tarjan_imported_graph_example3() {
-    t_graph graph = importGraphFromFile("..\\data\\exemple3.txt");
+    t_graph graph = importGraphFromFile("../data/exemple3.txt");
     if (graph.size == 0) return 1;
     t_partition *partition = tarjan(graph);
     int result = (partition != NULL && partition->classes != NULL) ? 0 : 1;
@@ -576,7 +577,160 @@ int test_tarjan_imported_graph_example3() {
     return result;
 }
 
-void register_project_tests(void) {
+//Tests pour hasse.c
+
+int test_ClassType() {
+    int num_vertices = 5;
+    int class_array[] = {0, 1, 0, 2, 1};
+    t_link_array class_links;
+    class_links.max_size = 10;
+    class_links.log_size = 0;
+    class_links.links = malloc(class_links.max_size * sizeof(t_link));
+    // Lien 0: classe 0 -> classe 1
+    class_links.links[class_links.log_size].src_nb = 0;
+    class_links.links[class_links.log_size].dest_nb = 1;
+    class_links.log_size++;
+
+    // Lien 1: classe 1 -> classe 2
+    class_links.links[class_links.log_size].src_nb = 1;
+    class_links.links[class_links.log_size].dest_nb = 2;
+    class_links.log_size++;
+
+    // Lien 2: classe 0 -> classe 2 (redondant)
+    class_links.links[class_links.log_size].src_nb = 0;
+    class_links.links[class_links.log_size].dest_nb = 2;
+    class_links.log_size++;
+
+    int *type_array = ClassType(class_array, num_vertices, class_links);
+    if (type_array == NULL) {
+        free(class_links.links);
+        return 1;
+    }
+    if (type_array[1] != 1) {
+        return 1; // Échec
+    }
+
+    if (type_array[3] != 0) {
+        return 1; // Échec
+    }
+
+    if (type_array[0] != 0) {
+        return 1; // Échec
+    }
+    free(type_array);
+    free(class_links.links);
+    return 0; // Succès
+}
+int test_isAbsorbingState() {
+    int num_classes = 6;
+    int class_sizes[] = {3, 1, 3, 1, 1, 1};
+
+    // Créer un tableau global avec tous les types
+    int all_types[] = {
+            0, 0, 0,      // Classe 0: 3 sommets persistants
+            0,            // Classe 1: 1 sommet persistant
+            1, 1, 1,      // Classe 2: 3 sommets transitoires
+            1,            // Classe 3: 1 sommet transitoire
+            0,            // Classe 4: 1 sommet persistant
+            0             // Classe 5: 1 sommet persistant
+    };
+
+    // Créer des pointeurs pour chaque classe (offset)
+    int* class_ptrs[] = {
+            all_types + 0,     // Classe 0 commence à index 0
+            all_types + 3,     // Classe 1 commence à index 3
+            all_types + 4,     // Classe 2 commence à index 4
+            all_types + 7,     // Classe 3 commence à index 7
+            all_types + 8,     // Classe 4 commence à index 8
+            all_types + 9      // Classe 5 commence à index 9
+    };
+
+    // Test 1: Classe 0 - absorbante (tous persistants)
+    int result = isAbsorbingState(class_sizes, 0, class_ptrs[0]);
+    if (result != 1) {
+        printf("DEBUG: Classe 0 result = %d, attendu 1\n", result);
+        return 1;
+    }
+
+    // Test 2: Classe 1 - absorbante
+    result = isAbsorbingState(class_sizes, 1, class_ptrs[1]);
+    if (result != 1) {
+        printf("DEBUG: Classe 1 result = %d, attendu 1\n", result);
+        return 1;
+    }
+
+    // Test 3: Classe 2 - pas absorbante (transitoires)
+    result = isAbsorbingState(class_sizes, 2, class_ptrs[2]);
+    if (result != 0) {
+        printf("DEBUG: Classe 2 result = %d, attendu 0\n", result);
+        return 1;
+    }
+
+    // Test 4: Classe 3 - pas absorbante
+    result = isAbsorbingState(class_sizes, 3, class_ptrs[3]);
+    if (result != 0) {
+        printf("DEBUG: Classe 3 result = %d, attendu 0\n", result);
+        return 1;
+    }
+
+    // Test 5: Classe 4 - absorbante
+    result = isAbsorbingState(class_sizes, 4, class_ptrs[4]);
+    if (result != 1) {
+        printf("DEBUG: Classe 4 result = %d, attendu 1\n", result);
+        return 1;
+    }
+
+    // Test 6: Classe 5 - absorbante
+    result = isAbsorbingState(class_sizes, 5, class_ptrs[5]);
+    if (result != 1) {
+        printf("DEBUG: Classe 5 result = %d, attendu 1\n", result);
+        return 1;
+    }
+
+    return 0;
+}
+
+int test_isIrreductible() {
+    // Test 1: Graphe irréductible (tous dans la même classe)
+    int class_array1[] = {0, 0, 0, 0, 0};
+    if (isIrreductible(class_array1, 5) != 1) {
+        return 1; // Échec
+    }
+
+    // Test 2: Graphe réductible (2 classes)
+    int class_array2[] = {0, 0, 1, 0, 0};
+    if (isIrreductible(class_array2, 5) != 0) {
+        return 1; // Échec
+    }
+
+    // Test 3: Graphe réductible (3 classes)
+    int class_array3[] = {2, 2, 1, 2, 0};
+    if (isIrreductible(class_array3, 5) != 0) {
+        return 1; // Échec
+    }
+
+    // Test 4: Un seul sommet
+    int class_array4[] = {5};
+    if (isIrreductible(class_array4, 1) != 1) {
+        return 1; // Échec
+    }
+
+    // Test 5: Deux sommets, même classe
+    int class_array5[] = {3, 3};
+    if (isIrreductible(class_array5, 2) != 1) {
+        return 1; // Échec
+    }
+
+    // Test 6: Deux sommets, classes différentes
+    int class_array6[] = {1, 2};
+    if (isIrreductible(class_array6, 2) != 0) {
+        return 1; // Échec
+    }
+
+    return 0; // Succès
+}
+
+void register_project_tests(void){
     // Tests des listes
     add_test("list_create_empty", test_list_create_empty, "Création d'une liste vide");
     add_test("list_add_cell", test_list_add_cell, "Ajout d'un élément à une liste");
@@ -643,4 +797,9 @@ void register_project_tests(void) {
     add_test("tarjan_empty_graph", test_tarjan_empty_graph, "Tarjan sur graphe vide");
     add_test("tarjan_single_vertex_no_edges", test_tarjan_single_vertex_no_edges, "Tarjan sur sommet isolé");
     add_test("tarjan_imported_graph_example3", test_tarjan_imported_graph_example3, "Tarjan sur data/example3.txt");
+
+    // Tests hasse.c
+    add_test("Class Type",test_ClassType,"Vérifie le type de la classe");
+    add_test("isAbsorbingState",test_isAbsorbingState,"Vérifie si une classe est un état absorbant");
+    add_test("isIrreductible",test_isIrreductible,"Vérifie si le graphe est irréductible");
 }
