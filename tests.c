@@ -209,16 +209,9 @@ static int test_markov_invalid(void) {
 
 // Tests pour class.c
 int test_createClass_normal() {
-    t_class *class = createClass("SCC1");
-    int result = (class != NULL && strcmp(class->name, "SCC1") == 0 && class->vertices == NULL && class->next == NULL) ? 0 : 1;
+    t_class *class = createClass(1);
+    int result = (class != NULL && class->id == 1 && class->vertices == NULL && class->next == NULL) ? 0 : 1;
     freeClass(class);
-    return result;
-}
-
-int test_createClass_long_name() {
-    t_class *class = createClass("UnNomTropLongPourLaStructureUnNomTropLongPourLaStructure");
-    int result = (class == NULL) ? 0 : 1;
-    if (class) freeClass(class);
     return result;
 }
 
@@ -230,7 +223,7 @@ int test_createVertex_normal() {
 }
 
 int test_addVertexToClass_normal() {
-    t_class *class = createClass("Test");
+    t_class *class = createClass(1);
     addVertexToClass(class, 1);
     addVertexToClass(class, 2);
     addVertexToClass(class, 3);
@@ -245,7 +238,7 @@ int test_addVertexToClass_null() {
 }
 
 int test_displayClass() {
-    t_class *class = createClass("TestDisplay");
+    t_class *class = createClass(1);
     addVertexToClass(class, 10);
     addVertexToClass(class, 20);
     addVertexToClass(class, 30);
@@ -267,7 +260,7 @@ int test_displayVertices_empty() {
 }
 
 int test_freeClass_normal() {
-    t_class *class = createClass("TestFree");
+    t_class *class = createClass(1);
     addVertexToClass(class, 1);
     addVertexToClass(class, 2);
     freeClass(class);
@@ -280,8 +273,8 @@ int test_freeClass_null() {
 }
 
 int test_class_complete_scenario() {
-    t_class *class1 = createClass("SCC1");
-    t_class *class2 = createClass("SCC2");
+    t_class *class1 = createClass(1);
+    t_class *class2 = createClass(2);
 
     addVertexToClass(class1, 1);
     addVertexToClass(class1, 2);
@@ -309,8 +302,8 @@ int test_createPartition_normal() {
 
 int test_addClassToPartition_normal() {
     t_partition *partition = createPartition();
-    t_class *class1 = createClass("SCC1");
-    t_class *class2 = createClass("SCC2");
+    t_class *class1 = createClass(1);
+    t_class *class2 = createClass(2);
 
     addVertexToClass(class1, 1);
     addVertexToClass(class2, 2);
@@ -324,7 +317,7 @@ int test_addClassToPartition_normal() {
 }
 
 int test_addClassToPartition_null_partition() {
-    t_class *class = createClass("Test");
+    t_class *class = createClass(1);
     addClassToPartition(NULL, class);
     freeClass(class);
     return 0; // Pas de crash = succès
@@ -339,8 +332,8 @@ int test_addClassToPartition_null_class() {
 
 int test_displayPartition_normal() {
     t_partition *partition = createPartition();
-    t_class *class1 = createClass("SCC1");
-    t_class *class2 = createClass("SCC2");
+    t_class *class1 = createClass(1);
+    t_class *class2 = createClass(2);
 
     addVertexToClass(class1, 1);
     addVertexToClass(class1, 2);
@@ -371,8 +364,8 @@ int test_displayPartition_empty() {
 
 int test_freePartition_normal() {
     t_partition *partition = createPartition();
-    t_class *class1 = createClass("SCC1");
-    t_class *class2 = createClass("SCC2");
+    t_class *class1 = createClass(1);
+    t_class *class2 = createClass(2);
 
     addVertexToClass(class1, 1);
     addVertexToClass(class2, 2);
@@ -392,9 +385,9 @@ int test_partition_complete_scenario() {
     t_partition *partition = createPartition();
 
     // Créer plusieurs classes avec des vertices
-    t_class *scc1 = createClass("SCC1");
-    t_class *scc2 = createClass("SCC2");
-    t_class *scc3 = createClass("SCC3");
+    t_class *scc1 = createClass(1);
+    t_class *scc2 = createClass(2);
+    t_class *scc3 = createClass(3);
 
     addVertexToClass(scc1, 1);
     addVertexToClass(scc1, 2);
@@ -603,7 +596,6 @@ void register_project_tests(void) {
 
     // Tests class.c
     add_test("createClass_normal", test_createClass_normal, "Création normale d'une classe");
-    add_test("createClass_long_name", test_createClass_long_name, "Nom trop long pour une classe");
     add_test("createVertex_normal", test_createVertex_normal, "Création normale d'un vertex");
     add_test("addVertexToClass_normal", test_addVertexToClass_normal, "Ajout de vertices à une classe");
     add_test("addVertexToClass_null", test_addVertexToClass_null, "Ajout vertex à classe NULL");

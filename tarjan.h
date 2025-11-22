@@ -2,7 +2,7 @@
 #define TARJAN_H
 
 #define UNVISITED (-1)
-#define DEBUG_TARJAN 1
+#define DEBUG_TARJAN 0
 
 #include "partition.h"
 #include "graph.h"
