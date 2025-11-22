@@ -1,8 +1,30 @@
 #include "matrix.h"
 #include "utils.h"
-#include <math.h> // Pour la fonction valeur absolue sur les doubles (fabs)
+#include <math.h>
 
+/**
+ * @file matrix.c
+ * @brief Implementation of matrix creation, manipulation and operations.
+ */
 
+/* private functions =================================================== */
+
+/**
+ * @brief Create an empty (invalid) matrix.
+ * @return A matrix with rows=0, cols=0, data=NULL.
+ */
+static t_matrix createEmptyMatrix() {
+    t_matrix m = {0, 0, NULL};
+    return m;
+}
+
+/**
+ * @brief Allocate a result matrix with given dimensions.
+ * @param result Pointer to matrix receiving allocation.
+ * @param rows Number of rows.
+ * @param cols Number of columns.
+ * @return 1 on success, -1 on allocation failure.
+ */
 static int createResultMatrix(t_matrix *result, int rows, int cols) {
     *result = createMatrix(rows, cols);
     if (!isValidMatrix(*result)) {
@@ -12,6 +34,12 @@ static int createResultMatrix(t_matrix *result, int rows, int cols) {
     return 1;
 }
 
+/**
+ * @brief Validate parameters for copyMatrix before performing copy.
+ * @param src Source matrix.
+ * @param dest Destination matrix.
+ * @return TRUE if parameters are valid, FALSE otherwise.
+ */
 static int copyMatrixParamsValid(t_matrix src, t_matrix *dest) {
     if (!isValidMatrix(src)) {
         fprintf(stderr, "copyMatrix: invalid source matrix\n");
@@ -29,6 +57,13 @@ static int copyMatrixParamsValid(t_matrix src, t_matrix *dest) {
     return TRUE;
 }
 
+/**
+ * @brief Validate parameters for matrix multiplication.
+ * @param a Left matrix.
+ * @param b Right matrix.
+ * @param result Destination pointer.
+ * @return TRUE if valid, FALSE otherwise.
+ */
 static int multiplyMatricesParamsValid(t_matrix a, t_matrix b, t_matrix *result) {
     if (!isValidMatrix(a)) {
         fprintf(stderr, "multiplyMatrices: invalid matrix A\n");
@@ -50,6 +85,13 @@ static int multiplyMatricesParamsValid(t_matrix a, t_matrix b, t_matrix *result)
     return TRUE;
 }
 
+/**
+ * @brief Validate parameters for matrix exponentiation.
+ * @param m Input square matrix.
+ * @param power Non-negative exponent.
+ * @param result Destination pointer.
+ * @return TRUE if valid, FALSE otherwise.
+ */
 static int powerMatrixParamsValid(t_matrix m, int power, t_matrix *result) {
     if (!isValidMatrix(m)) {
         fprintf(stderr, "powerMatrix: invalid matrix\n");
@@ -70,6 +112,13 @@ static int powerMatrixParamsValid(t_matrix m, int power, t_matrix *result) {
     return TRUE;
 }
 
+/**
+ * @brief Validate parameters for setting a matrix value.
+ * @param m Pointer to matrix.
+ * @param row Row index.
+ * @param col Column index.
+ * @return TRUE if valid, FALSE otherwise.
+ */
 static int setMatrixValueParamsValid(t_matrix *m, int row, int col) {
     if (m == NULL || !isValidMatrix(*m)) {
         fprintf(stderr, "setMatrixValue: invalid matrix\n");
@@ -82,6 +131,12 @@ static int setMatrixValueParamsValid(t_matrix *m, int row, int col) {
     return TRUE;
 }
 
+/**
+ * @brief Validate parameters for computing difference between two matrices.
+ * @param a First matrix.
+ * @param b Second matrix.
+ * @return TRUE if valid, FALSE otherwise.
+ */
 static int diffMatricesParamsValid(t_matrix a, t_matrix b) {
     if (!isValidMatrix(a)) {
         fprintf(stderr, "diffMatrices: invalid matrix A\n");
@@ -99,6 +154,13 @@ static int diffMatricesParamsValid(t_matrix a, t_matrix b) {
     return TRUE;
 }
 
+/**
+ * @brief Recursive function for exponentiation by repeated multiplication.
+ * @param m Base matrix.
+ * @param power Current exponent.
+ * @param result Result matrix (already allocated).
+ * @return 1 on success, -1 on error.
+ */
 static int powerMatrixRec(t_matrix m, int power, t_matrix *result) {
     if (power == 0) {
         // Retourner la matrice identité
@@ -119,6 +181,10 @@ static int powerMatrixRec(t_matrix m, int power, t_matrix *result) {
     freeMatrix(&temp);
 }
 
+/**
+ * @brief Internal display of matrix raw data (without header).
+ * @param m Matrix to print.
+ */
 static void displayMatrixData(t_matrix m) {
     if (isEmptyMatrix(m)) {
         printf("NULL");
@@ -133,11 +199,7 @@ static void displayMatrixData(t_matrix m) {
     printf("\n");
 }
 
-
-t_matrix createEmptyMatrix() {
-    t_matrix m = {0, 0, NULL};
-    return m;
-}
+/* public functions =================================================== */
 
 t_matrix createMatrix(const int rows, const int cols) {
     t_matrix m = createEmptyMatrix();
