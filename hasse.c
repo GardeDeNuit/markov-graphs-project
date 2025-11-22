@@ -144,7 +144,7 @@ static void displayHasse(t_link_array *links, t_partition *partition, int *class
 
 // Définition des caractéristiques du graph
 
-int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
+static int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
     int *type_array = malloc(num_vertices * sizeof(int));
 
     for (int i = 0; i < num_vertices; i++) {
@@ -164,7 +164,7 @@ int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
     return type_array;
 }
 
-int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
+static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
     // Vérifie si une classe est absorbante
     for (int i = 0; i < class_sizes[class_nb]; i++) {
         if (type_array[i] != 0) {
@@ -174,7 +174,7 @@ int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
     return 1; // Absorbant
 }
 
-int isIrreductible(int* class_array,int num_vertices) {
+static int isIrreductible(int* class_array,int num_vertices) {
     // Vérifie si le graphe est irréductible
     int first_class = class_array[0];
     for (int i = 1; i < num_vertices; i++) {

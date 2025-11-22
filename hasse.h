@@ -23,9 +23,6 @@ typedef struct s_link_array t_link_array;
 // Crée un tableau : class_array[sommet] = numéro de classe
 int* makeClassArray(t_graph *graph, t_partition *partition);
 
-int *ClassType(int*,int,t_link_array);
-int isAbsorbingState(int*,int,int*);
-int isIrreductible(int*,int);
 /**
  * @brief Creates a link array from the given partition and graph.
  *
