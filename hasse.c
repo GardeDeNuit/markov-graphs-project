@@ -4,6 +4,14 @@
 #include "hasse.h"
 
 /**
+ * @brief Make a Hasse Diagram
+ */
+
+
+
+/* private functions =================================================== */
+
+/**
  * @brief Remove redundant transitive links from a link array.
  * @param p_link_array Pointer to the link array to be cleaned.
  * @return Nothing.
@@ -83,7 +91,7 @@ static int linkExists(t_link_array *link_array, int dept, int dest)
 
 static void addLink(t_link_array *link_array, int dept, int dest)
 {
-    // Vérifier que le lien n'existe pas déjà
+
     if (linkExists(link_array, dept, dest))
         return;
 
@@ -114,11 +122,9 @@ static char** buildName(t_partition *partition, int num_classes)
 
     while (curr_class != NULL && class_num < num_classes)
     {
-        // Allouer 64 caractères par classe
         class_names[class_num] = malloc(64 * sizeof(char));
         memset(class_names[class_num], 0, 64);
 
-        // Construire la chaîne avec les sommets
         strcpy(class_names[class_num], "{");
 
         t_vertex *curr_vertex = curr_class->vertices;
@@ -172,7 +178,6 @@ static void displayHasse(t_link_array *links, t_partition *partition, int *class
         printf("%s -> %s\n", class_names[from], class_names[to]);
     }
 
-    // Libérer la mémoire
     for (int i = 0; i < num_classes; i++) {
         free(class_names[i]);
     }
@@ -191,16 +196,15 @@ static int* ClassType(int* class_array,int num_vertices,t_link_array class_links
     int *type_array = malloc(num_vertices * sizeof(int));
 
     for (int i = 0; i < num_vertices; i++) {
-        type_array[i] = 0; // Initialisation à 0 = persistant
+        type_array[i] = 0;
     }
 
-    // Parcours des liens
     for (int i = 0; i < class_links.log_size; i++) {
         int dept = class_links.links[i].src_nb;
         int dest = class_links.links[i].dest_nb;
 
         if (dept != dest) {
-            type_array[dest] = 1; // 1 = transitoire
+            type_array[dest] = 1;
         }
 
     }
@@ -216,13 +220,13 @@ static int* ClassType(int* class_array,int num_vertices,t_link_array class_links
  */
 
 static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
-    // Vérifie si une classe est absorbante
+
     for (int i = 0; i < class_sizes[class_nb]; i++) {
         if (type_array[i] != 0) {
-            return 0; // Pas absorbant
+            return 0;
         }
     }
-    return 1; // Absorbant
+    return 1;
 }
 
 /**
@@ -233,17 +237,17 @@ static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
  */
 
 static int isIrreductible(int* class_array,int num_vertices) {
-    // Vérifie si le graphe est irréductible
+
     int first_class = class_array[0];
     for (int i = 1; i < num_vertices; i++) {
         if (class_array[i] != first_class) {
-            return 0; // Pas irréductible
+            return 0;
         }
     }
-    return 1; // Irréductible
+    return 1;
 }
 
-// Public Fonction
+/* public functions =================================================== */
 
 
 int* makeClassArray(t_graph *graph, t_partition *partition)
@@ -256,12 +260,11 @@ int* makeClassArray(t_graph *graph, t_partition *partition)
 
     while (curr_class != NULL)
     {
-        // Parcourir tous les sommets de cette classe
+
         t_vertex *curr_vertex = curr_class->vertices;
         while (curr_vertex != NULL)
         {
             int vertex_id = curr_vertex->value;
-            // vertex_id est 1-based, class_array est 0-based
 
             class_array[vertex_id - 1] = class_num;
             curr_vertex = curr_vertex->next;
