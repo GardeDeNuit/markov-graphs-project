@@ -71,7 +71,7 @@ int *createArrayClass(int nb_vertex, t_link_array * array)
     return class;
 }
 
-t_link_array * addLink(t_link_array *link_array,int dept,int dest) {
+void addLink(t_link_array *link_array,int dept,int dest) {
     //fonction qui permet de créer les connections du diagramme de hasse
 
     if (link_array->log_size >= link_array->max_size)
@@ -84,7 +84,6 @@ t_link_array * addLink(t_link_array *link_array,int dept,int dest) {
     link_array->links[link_array->log_size].dept_nb = dept;
     link_array->links[link_array->log_size].dest_nb = dest;
     link_array->log_size++;
-    return link_array;
 }
 
 t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links)
@@ -92,7 +91,7 @@ t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_l
 {
     // Cree le tableau de classe
     int *class_array = createArrayClass(num_vertices, class_links);
-    t_link_array *class_link;
+
 
     //
     for (int i = 0; i < num_vertices; i++)
@@ -108,7 +107,7 @@ t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_l
             // classe différente, on ajoute le lien
             if (Ci != Cj)
             {
-                class_link = addLink(class_links, Ci, Cj);
+                addLink(class_links, Ci, Cj);
             }
         }
     }
@@ -116,7 +115,7 @@ t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_l
     // Enlève les redondances
     removeTransitiveLinks(class_links);
 
-    return  class_link;
+    return  class_links;
 }
 
 // Définition des caractéristiques du graph

@@ -17,7 +17,7 @@ struct s_link_array {
 typedef struct s_link_array t_link_array;
 
 
-t_link_array* addLink(t_link_array *link_array, int dept, int dest);
+void addLink(t_link_array *link_array, int dept, int dest);
 t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links);
 void removeTransitiveLinks(t_link_array *p_link_array);
 int *createArrayClass(int nb_sommets, t_link_array *arr);
