@@ -3,7 +3,7 @@
 #include <string.h>
 #include "hasse.h"
 
-void removeTransitiveLinks(t_link_array *p_link_array)
+static void removeTransitiveLinks(t_link_array *p_link_array)
 {
     int i = 0;
     while (i < p_link_array->log_size)
@@ -47,7 +47,7 @@ void removeTransitiveLinks(t_link_array *p_link_array)
     }
 }
 
-int linkExists(t_link_array *link_array, int dept, int dest)
+static int linkExists(t_link_array *link_array, int dept, int dest)
 {
     for (int i = 0; i < link_array->log_size; i++)
     {
@@ -59,7 +59,7 @@ int linkExists(t_link_array *link_array, int dept, int dest)
     return 0;
 }
 
-void addLink(t_link_array *link_array, int dept, int dest)
+static void addLink(t_link_array *link_array, int dept, int dest)
 {
     // Vérifier que le lien n'existe pas déjà
     if (linkExists(link_array, dept, dest))
@@ -118,8 +118,8 @@ char** createClassNamesFromPartition(t_partition *partition, int num_classes)
     while (curr_class != NULL && class_num < num_classes)
     {
         // Allouer 256 caractères par classe
-        class_names[class_num] = malloc(256 * sizeof(char));
-        memset(class_names[class_num], 0, 256);
+        class_names[class_num] = malloc(64 * sizeof(char));
+        memset(class_names[class_num], 0, 64);
 
         // Construire la chaîne avec les sommets
         strcpy(class_names[class_num], "{");
@@ -150,32 +150,6 @@ char** createClassNamesFromPartition(t_partition *partition, int num_classes)
 void displayHasseLinksDetailed(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
 {
     printf("\n=== Diagramme de Hasse (après suppression des redondances) ===\n");
-
-    if (links->log_size == 0) {
-        printf("Aucun lien entre les classes.\n");
-        return;
-    }
-
-    char **class_names = createClassNamesFromPartition(partition, num_classes);
-
-    printf("Liens entre classes:\n");
-    for (int i = 0; i < links->log_size; i++)
-    {
-        int from = links->links[i].src_nb;
-        int to = links->links[i].dest_nb;
-        printf("%s -> %s\n", class_names[from], class_names[to]);
-    }
-
-    // Libérer la mémoire
-    for (int i = 0; i < num_classes; i++) {
-        free(class_names[i]);
-    }
-    free(class_names);
-}
-
-void displayHasseLinks(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
-{
-    printf("\n=== Diagramme de Hasse ===\n");
 
     if (links->log_size == 0) {
         printf("Aucun lien entre les classes.\n");
