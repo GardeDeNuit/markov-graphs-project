@@ -276,3 +276,24 @@ int* makeClassArray(t_graph *graph, t_partition *partition)
 
     return class_array;
 }
+
+void addLinkToHasseDiagram(t_link_array *hasse, t_graph g, int *class_array){
+    for (int i = 0; i < g.size; i++) {   // <-- FIX ici
+        int ci = class_array[i];
+
+        t_cell *cur = g.values[i].head;
+
+        while (cur != NULL) {
+            int v = cur->vertex - 1; // sommet en 0-based
+            int cj = class_array[v];
+
+            if (ci != cj) {
+                addLink(hasse, ci, cj);
+            }
+
+            cur = cur->next;
+        }
+    }
+
+    removeTransitiveLinks(hasse);
+}

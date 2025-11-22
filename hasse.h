@@ -30,4 +30,16 @@ typedef struct s_link_array t_link_array;
  */
 int* makeClassArray(t_graph *graph, t_partition *partition);
 
+int *ClassType(int*,int,t_link_array);
+int isAbsorbingState(int*,int,int*);
+int isIrreductible(int*,int);
+void addLinkToHasseDiagram(t_link_array *hasse, t_graph g, int *class_array);
+/**
+ * @brief Creates a link array from the given partition and graph.
+ *
+ * @param part The partition of the graph.
+ * @param graph The adjacency list representation of the graph.
+ * @return The created link array.
+ */
+
 #endif
