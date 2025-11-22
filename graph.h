@@ -15,10 +15,12 @@
 /**
  * @struct s_graph
  * @brief Represents a directed weighted graph using adjacency lists
+ * @param values Array of adjacency lists (one per vertex)
+ * @param size Number of vertices in the graph
  */
 struct s_graph {
-    t_list* values;  /**< Array of adjacency lists (one per vertex) */
-    int size;        /**< Number of vertices in the graph */
+    t_list* values;
+    int size;
 };
 typedef struct s_graph t_graph;
 
