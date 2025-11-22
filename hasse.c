@@ -93,14 +93,14 @@ int* createClassArrayFromPartition(t_graph *graph, t_partition *partition)
         {
             int vertex_id = curr_vertex->value;
             // vertex_id est 1-based, class_array est 0-based
-            if (vertex_id >= 1 && vertex_id <= graph->size)
+            if (vertex_id >= 1 && vertex_id <= graph->size) // Retirer la condition
             {
-                class_array[vertex_id - 1] = class_num;
+                class_array[vertex_id - 1] = class_num; // curr_class->id;
             }
             curr_vertex = curr_vertex->next;
         }
 
-        class_num++;
+        class_num++; // retirer
         curr_class = curr_class->next;
     }
 
