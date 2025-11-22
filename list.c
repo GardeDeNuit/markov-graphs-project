@@ -1,4 +1,6 @@
 #include "list.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 t_list createEmptyList(){
     t_list new_list;
@@ -6,21 +8,22 @@ t_list createEmptyList(){
     return new_list;
 }
 
-void addCell(t_list *ptr_list, int vertex, double weight)
+int addCell(t_list *list, int vertex, double weight)
 {
-    if (ptr_list == NULL) {
-        fprintf(stderr, "addCell: ptr_list is NULL\n");
-        return;
+    if (list == NULL) {
+        fprintf(stderr, "addCell: list pointer is NULL\n");
+        return -1;
     }
 
     t_cell *cell = createCell(vertex, weight);
     if (cell == NULL) {
-        // createCell already printed an error
-        return;
+        fprintf(stderr, "addCell: failed to create cell\n");
+        return -1;
     }
 
-    cell->next = ptr_list->head;
-    ptr_list->head= cell;
+    cell->next = list->head;
+    list->head= cell;
+    return 1;
 }
 
 void displayList(t_list list) {
@@ -35,8 +38,11 @@ void displayList(t_list list) {
     printf("\n");
 }
 
-void freeList(t_list* list) {
-    if (list == NULL) return;
+int freeList(t_list* list) {
+    if (list == NULL) {
+        fprintf(stderr, "freeList: list pointer is NULL\n");
+        return -1;
+    }
     t_cell* curr = list->head;
     while (curr != NULL) {
         t_cell* next = curr->next;
@@ -44,9 +50,10 @@ void freeList(t_list* list) {
         curr = next;
     }
     list->head = NULL;
+    return 1;
 }
 
-double sumValues(t_list list){
+double sumListValues(t_list list){
     t_cell* curr = list.head;
     double sum = 0.00;
     while (curr != NULL){

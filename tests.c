@@ -75,7 +75,7 @@ static int test_list_free(void) {
 // Test somme des poids d'une liste vide
 static int test_list_sum_empty(void) {
     t_list l = createEmptyList();
-    if (sumValues(l) != 0.0) return 1;
+    if (sumListValues(l) != 0.0) return 1;
     return 0;
 }
 
@@ -84,7 +84,7 @@ static int test_list_sum_values(void) {
     t_list l = createEmptyList();
     addCell(&l, 1, 0.4);
     addCell(&l, 2, 0.6);
-    double sum = sumValues(l);
+    double sum = sumListValues(l);
     freeList(&l);
     // Tolérance pour comparaison de flottants
     if (sum < 0.99 || sum > 1.01) return 1;
@@ -194,7 +194,7 @@ static int test_read_file_nonexistent(void) {
 static int test_markov_valid(void) {
     t_graph g = importGraphFromFile("../data/exemple1.txt");
     if (g.size == 0) { freeGraph(&g); return 1; }
-    int is_markov = is_graphMarkov(g);
+    int is_markov = isMarkovGraph(g);
     freeGraph(&g);
     return (is_markov == 1) ? 0 : 1;
 }
@@ -202,7 +202,7 @@ static int test_markov_valid(void) {
 static int test_markov_invalid(void) {
     t_graph g = importGraphFromFile("../data/exemple1_from_chatGPT.txt");
     if (g.size == 0) { freeGraph(&g); return 1; }
-    int is_markov = is_graphMarkov(g);
+    int is_markov = isMarkovGraph(g);
     freeGraph(&g);
     return (is_markov == 0) ? 0 : 1;
 }
