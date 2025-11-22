@@ -20,16 +20,7 @@ struct s_link_array {
 typedef struct s_link_array t_link_array;
 
 // Crée un tableau : class_array[sommet] = numéro de classe
-int* createClassArrayFromPartition(t_graph *graph, t_partition *partition);
-
-// Crée un tableau pour stocker les noms des classes (composantes)
-char** createClassNamesFromPartition(t_partition *partition, int num_classes);
-
-void addLink(t_link_array *link_array, int dept, int dest);
-int linkExists(t_link_array *link_array, int dept, int dest);
-void removeTransitiveLinks(t_link_array *p_link_array);
-void displayHasseLinksDetailed(t_link_array *links, t_partition *partition, int *class_array, int num_classes);
-void displayHasseLinks(t_link_array *links, t_partition *partition, int *class_array, int num_classes);
+int* makeClassArray(t_graph *graph, t_partition *partition);
 
 int *ClassType(int*,int,t_link_array);
 int isAbsorbingState(int*,int,int*);

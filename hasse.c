@@ -77,7 +77,7 @@ static void addLink(t_link_array *link_array, int dept, int dest)
 }
 
 // Crée un tableau : class_array[sommet] = numéro de classe
-int* createClassArrayFromPartition(t_graph *graph, t_partition *partition)
+int* makeClassArray(t_graph *graph, t_partition *partition)
 {
     int *class_array = malloc(graph->size * sizeof(int));
     memset(class_array, -1, graph->size * sizeof(int));
@@ -93,10 +93,8 @@ int* createClassArrayFromPartition(t_graph *graph, t_partition *partition)
         {
             int vertex_id = curr_vertex->value;
             // vertex_id est 1-based, class_array est 0-based
-            if (vertex_id >= 1 && vertex_id <= graph->size)
-            {
-                class_array[vertex_id - 1] = class_num;
-            }
+
+            class_array[vertex_id - 1] = class_num;
             curr_vertex = curr_vertex->next;
         }
 
@@ -108,7 +106,7 @@ int* createClassArrayFromPartition(t_graph *graph, t_partition *partition)
 }
 
 // Crée un tableau pour stocker les noms/sommets des classes
-char** createClassNamesFromPartition(t_partition *partition, int num_classes)
+static char** buildName(t_partition *partition, int num_classes)
 {
     char **class_names = malloc(num_classes * sizeof(char*));
 
@@ -117,7 +115,7 @@ char** createClassNamesFromPartition(t_partition *partition, int num_classes)
 
     while (curr_class != NULL && class_num < num_classes)
     {
-        // Allouer 256 caractères par classe
+        // Allouer 64 caractères par classe
         class_names[class_num] = malloc(64 * sizeof(char));
         memset(class_names[class_num], 0, 64);
 
@@ -147,7 +145,7 @@ char** createClassNamesFromPartition(t_partition *partition, int num_classes)
     return class_names;
 }
 
-void displayHasseLinksDetailed(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
+static void displayHasse(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
 {
     printf("\n=== Diagramme de Hasse (après suppression des redondances) ===\n");
 
@@ -156,7 +154,7 @@ void displayHasseLinksDetailed(t_link_array *links, t_partition *partition, int 
         return;
     }
 
-    char **class_names = createClassNamesFromPartition(partition, num_classes);
+    char **class_names = buildName(partition, num_classes);
 
     printf("Liens entre classes:\n");
     for (int i = 0; i < links->log_size; i++)
