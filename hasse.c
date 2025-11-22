@@ -1,10 +1,9 @@
 #include <malloc.h>
+#include <stdio.h>
+#include <string.h>
 #include "hasse.h"
 
-
 void removeTransitiveLinks(t_link_array *p_link_array)
-//enlève des liens en trop
-
 {
     int i = 0;
     while (i < p_link_array->log_size)
@@ -17,16 +16,15 @@ void removeTransitiveLinks(t_link_array *p_link_array)
             if (j != i)
             {
                 t_link link2 = p_link_array->links[j];
-                if (link1.dept_nb == link2.dept_nb)
+                if (link1.src_nb == link2.src_nb)
                 {
-                    // look for a link from link2.to to link1.to
                     int k = 0;
                     while (k < p_link_array->log_size && !to_remove)
                     {
                         if (k != j && k != i)
                         {
                             t_link link3 = p_link_array->links[k];
-                            if ((link3.dept_nb == link2.dest_nb) && (link3.dest_nb == link1.dest_nb))
+                            if ((link3.src_nb == link2.dest_nb) && (link3.dest_nb == link1.dest_nb))
                             {
                                 to_remove = 1;
                             }
@@ -39,7 +37,6 @@ void removeTransitiveLinks(t_link_array *p_link_array)
         }
         if (to_remove)
         {
-            // remove link1 by replacing it with the last link
             p_link_array->links[i] = p_link_array->links[p_link_array->log_size - 1];
             p_link_array->log_size--;
         }
@@ -50,72 +47,156 @@ void removeTransitiveLinks(t_link_array *p_link_array)
     }
 }
 
-int *createArrayClass(int nb_vertex, t_link_array * array)
-//fonction qui permet de créer un tableau qui indique la classe de chaque sommet
-
+int linkExists(t_link_array *link_array, int dept, int dest)
 {
-    int *class = malloc(nb_vertex * sizeof(int));
-
-    for (int i = 0; i < nb_vertex; i++)
-        class[i] = i;
-
-    for (int i = 0; i < array->log_size; i++)
+    for (int i = 0; i < link_array->log_size; i++)
     {
-        //associe chaque classe au plus petit numéro
-        int a = array->links[i].dept_nb;
-        int b = array->links[i].dest_nb;
-
-        class[b] = class[a];
+        if (link_array->links[i].src_nb == dept && link_array->links[i].dest_nb == dest)
+        {
+            return 1;
+        }
     }
-
-    return class;
+    return 0;
 }
 
-void addLink(t_link_array *link_array,int dept,int dest) {
-    //fonction qui permet de créer les connections du diagramme de hasse
+void addLink(t_link_array *link_array, int dept, int dest)
+{
+    // Vérifier que le lien n'existe pas déjà
+    if (linkExists(link_array, dept, dest))
+        return;
 
     if (link_array->log_size >= link_array->max_size)
     {
-        // Optional: automatic realloc
         link_array->max_size *= 2;
         link_array->links = realloc(link_array->links, link_array->max_size * sizeof(t_link));
     }
 
-    link_array->links[link_array->log_size].dept_nb = dept;
+    link_array->links[link_array->log_size].src_nb = dept;
     link_array->links[link_array->log_size].dest_nb = dest;
     link_array->log_size++;
 }
 
-t_link_array* createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links)
-//fonction qui permet de créer le diagramme de hasse
+// Crée un tableau : class_array[sommet] = numéro de classe
+int* createClassArrayFromPartition(t_graph *graph, t_partition *partition)
 {
-    // Cree le tableau de classe
-    int *class_array = createArrayClass(num_vertices, class_links);
+    int *class_array = malloc(graph->size * sizeof(int));
+    memset(class_array, -1, graph->size * sizeof(int));
 
+    int class_num = 0;
+    t_class *curr_class = partition->classes;
 
-    //
-    for (int i = 0; i < num_vertices; i++)
+    while (curr_class != NULL)
     {
-        int Ci = class_array[i];
-
-        //
-        for (int k = 0; k < adj_size[i]; k++)
+        // Parcourir tous les sommets de cette classe
+        t_vertex *curr_vertex = curr_class->vertices;
+        while (curr_vertex != NULL)
         {
-            int j = adj_list[i][k];
-            int Cj = class_array[j];
-
-            // classe différente, on ajoute le lien
-            if (Ci != Cj)
+            int vertex_id = curr_vertex->value;
+            // vertex_id est 1-based, class_array est 0-based
+            if (vertex_id >= 1 && vertex_id <= graph->size)
             {
-                addLink(class_links, Ci, Cj);
+                class_array[vertex_id - 1] = class_num;
             }
+            curr_vertex = curr_vertex->next;
         }
+
+        class_num++;
+        curr_class = curr_class->next;
     }
 
-    // Enlève les redondances
-    removeTransitiveLinks(class_links);
+    return class_array;
+}
 
-    return  class_links;
+// Crée un tableau pour stocker les noms/sommets des classes
+char** createClassNamesFromPartition(t_partition *partition, int num_classes)
+{
+    char **class_names = malloc(num_classes * sizeof(char*));
+
+    int class_num = 0;
+    t_class *curr_class = partition->classes;
+
+    while (curr_class != NULL && class_num < num_classes)
+    {
+        // Allouer 256 caractères par classe
+        class_names[class_num] = malloc(256 * sizeof(char));
+        memset(class_names[class_num], 0, 256);
+
+        // Construire la chaîne avec les sommets
+        strcpy(class_names[class_num], "{");
+
+        t_vertex *curr_vertex = curr_class->vertices;
+        int first = 1;
+        while (curr_vertex != NULL)
+        {
+            if (!first) strcat(class_names[class_num], ",");
+
+            char vertex_str[16];
+            snprintf(vertex_str, sizeof(vertex_str), "%d", curr_vertex->value);
+            strcat(class_names[class_num], vertex_str);
+
+            first = 0;
+            curr_vertex = curr_vertex->next;
+        }
+
+        strcat(class_names[class_num], "}");
+
+        class_num++;
+        curr_class = curr_class->next;
+    }
+
+    return class_names;
+}
+
+void displayHasseLinksDetailed(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
+{
+    printf("\n=== Diagramme de Hasse (après suppression des redondances) ===\n");
+
+    if (links->log_size == 0) {
+        printf("Aucun lien entre les classes.\n");
+        return;
+    }
+
+    char **class_names = createClassNamesFromPartition(partition, num_classes);
+
+    printf("Liens entre classes:\n");
+    for (int i = 0; i < links->log_size; i++)
+    {
+        int from = links->links[i].src_nb;
+        int to = links->links[i].dest_nb;
+        printf("%s -> %s\n", class_names[from], class_names[to]);
+    }
+
+    // Libérer la mémoire
+    for (int i = 0; i < num_classes; i++) {
+        free(class_names[i]);
+    }
+    free(class_names);
+}
+
+void displayHasseLinks(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
+{
+    printf("\n=== Diagramme de Hasse ===\n");
+
+    if (links->log_size == 0) {
+        printf("Aucun lien entre les classes.\n");
+        return;
+    }
+
+    char **class_names = createClassNamesFromPartition(partition, num_classes);
+
+    printf("Liens entre classes:\n");
+    for (int i = 0; i < links->log_size; i++)
+    {
+        int from = links->links[i].src_nb;
+        int to = links->links[i].dest_nb;
+        printf("%s -> %s\n", class_names[from], class_names[to]);
+    }
+
+    // Libérer la mémoire
+    for (int i = 0; i < num_classes; i++) {
+        free(class_names[i]);
+    }
+    free(class_names);
 }
 
 // Définition des caractéristiques du graph
@@ -124,12 +205,12 @@ int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
     int *type_array = malloc(num_vertices * sizeof(int));
 
     for (int i = 0; i < num_vertices; i++) {
-        type_array[i] = 0; // Initialisation à 0 = absorbant
+        type_array[i] = 0; // Initialisation à 0 = persistant
     }
 
     // Parcours des liens
     for (int i = 0; i < class_links.log_size; i++) {
-        int dept = class_links.links[i].dept_nb;
+        int dept = class_links.links[i].src_nb;
         int dest = class_links.links[i].dest_nb;
 
         if (dept != dest) {
