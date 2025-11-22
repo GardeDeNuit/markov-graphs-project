@@ -14,12 +14,12 @@ typedef struct s_vertex {
 } t_vertex;
 
 typedef struct s_class {
-    char name[CLASS_NAME_MAX_SIZE];
+    int id;
     t_vertex *vertices;
     struct s_class *next;
 } t_class;
 
-t_class* createClass(const char *name);
+t_class* createClass(int class_id);
 t_vertex* createVertex(int value);
 void addVertexToClass(t_class *class, int value);
 void displayVertices(t_vertex *vertex);

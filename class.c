@@ -3,20 +3,15 @@
 #include <string.h>
 #include <stdio.h>
 
-t_class* createClass(const char *name) {
+t_class* createClass(int class_id) {
     debugPrint(DEBUG_CLASS, "createClass: start");
-    if (strlen(name) >= CLASS_NAME_MAX_SIZE) {
-        debugPrint(DEBUG_CLASS, "createClass: name too long");
-        fprintf(stderr,"createClass: name too long\n");
-        return NULL;
-    }
     t_class* class = (t_class *)malloc(sizeof(t_class));
     if (class == NULL) {
         debugPrint(DEBUG_CLASS, "createClass: allocation failed");
         perror("createClass: allocation failed");
         return NULL;
     }
-    strcpy(class->name, name);
+    class->id = class_id;
     class->vertices = NULL;
     class->next = NULL;
     debugPrint(DEBUG_CLASS, "createClass: success");
@@ -72,7 +67,7 @@ void displayClass(t_class *class) {
         debugPrint(DEBUG_CLASS, "displayClass: class is NULL");
         return;
     }
-    printf("Class %s: {", class->name);
+    printf("Class %d: {", class->id);
     displayVertices(class->vertices);
     printf("}\n");
     debugPrint(DEBUG_CLASS, "displayClass: done");
