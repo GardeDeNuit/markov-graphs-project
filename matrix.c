@@ -199,6 +199,71 @@ static void displayMatrixData(t_matrix m) {
     printf("\n");
 }
 
+/**
+ * @brief Computes the stationary distribution of a single class.
+ *
+ * @param M Full adjacency matrix.
+ * @param part Partition of the graph.
+ * @param hasse Hasse diagram (persistent / transient info).
+ * @param class Pointer to the class to process.
+ * @param epsilon Convergence threshold.
+ * @return the stationary distribution of that class.
+ *         Zero matrix if the class is transient.
+ */
+static t_matrix computeStationaryDistributionForOneClass(
+        t_matrix M,
+        t_partition part,
+        t_hasse_diagram hasse,
+        t_class *class,
+        double epsilon) {
+    if (class == NULL) {
+        fprintf(stderr, "computeStationaryDistributionForOneClass: NULL class pointer\n");
+        return createMatrix(0, 0);
+    }
+
+    int class_id = class->id;
+
+    // Construction de la sous-matrice correspondant à la classe
+    t_matrix subM = buildSubMatrix(M, part, class_id);
+    if (!isValidMatrix(subM)) {
+        fprintf(stderr, "Error: Failed to build submatrix for class %d\n", class_id);
+        return createMatrix(0, 0);
+    }
+
+    int size = subM.rows;
+
+    // Cas ou la class n'est pas persistante
+    if (!isPersistantClass(hasse, class_id)) {
+        // La distribution est stationnaire
+        // On doit renvoyer une matrice nulle
+        t_matrix zero = createMatrix(1, size);
+        freeMatrix(&subM);
+        return zero;
+    }
+
+    // La matrice est persistante.
+    t_matrix limit;
+    int n = computeConvergedMatrixPower(subM, epsilon, &limit, 2000);
+
+    if (n == -1) {
+        fprintf(stderr, "Class %d did not converge.\n", class_id);
+        t_matrix zero = createMatrix(1, size);
+        freeMatrix(&subM);
+        return zero;
+    }
+
+    // Extraction de la distribution stationnaire
+    // La distribution stationnaire est la première ligne de la matrice limite
+    t_matrix distrib = createMatrix(1, size);
+    for (int j = 0; j < size; j++)
+        distrib.data[0][j] = limit.data[0][j];
+
+    freeMatrix(&limit);
+    freeMatrix(&subM);
+
+    return distrib;
+}
+
 /* public functions =================================================== */
 
 t_matrix createMatrix(const int rows, const int cols) {
@@ -329,4 +394,129 @@ int createMatrixFromGraph(t_graph g, t_matrix *result) {
         }
     }
     return 1;
+}
+
+t_matrix buildSubMatrix(t_matrix matrix, t_partition part, int class_id) {
+    // Recherche de la classe correspondant à class_id dans la partition.
+    // La partition est une liste chaînée de classes.
+    t_class* curr_class = part.classes;
+    while (curr_class != NULL && curr_class->id != class_id) {
+        curr_class = curr_class->next;
+    }
+    if (curr_class == NULL) {
+        fprintf(stderr, "subMatrix: class_id %d not found in partition\n", class_id);
+        return createEmptyMatrix();
+    }
+
+    // Création d'une matrice carrée de taille égale au nombre de sommets dans la classe.
+    int size = curr_class->vertex_number;
+    t_matrix sub_m = createMatrix(size, size);
+    if (!isValidMatrix(sub_m)) {
+        fprintf(stderr, "subMatrix: failed to create submatrix\n");
+        return createEmptyMatrix();
+    }
+
+    // Remplissage de la sous-matrice avec les valeurs appropriées.
+    // On parcourt les sommets de la classe pour déterminer les indices
+    // des valeurs à récupérer dans la matrice originale
+    t_vertex* row_vertex = curr_class->vertices;
+    for (int i = 0; i < size; ++i) {
+        t_vertex* col_vertex = curr_class->vertices;
+        for (int j = 0; j < size; ++j) {
+            int row_index = row_vertex->value - 1;
+            int col_index = col_vertex->value - 1;
+            sub_m.data[i][j] = matrix.data[row_index][col_index];
+            col_vertex = col_vertex->next;
+        }
+        row_vertex = row_vertex->next;
+    }
+
+    return sub_m;
+}
+
+int computeConvergedMatrixPower(t_matrix matrix, double epsilon, t_matrix *limitMatrix, int maxIter) {
+    if (!isValidMatrix(matrix) || matrix.rows != matrix.cols) {
+        fprintf(stderr, "computeConvergedMatrixPower: invalid input matrix\n");
+        return -1;
+    }
+
+    // Calculer M^1
+    // C'est égal à la matrice elle-même donc on initialise prev avec matrix
+    t_matrix prev;
+    if (createResultMatrix(&prev, matrix.rows, matrix.rows) < 0) return -1;
+    copyMatrix(matrix, &prev);
+
+    t_matrix curr;
+
+    for (int n = 2; n <= maxIter; n++) {
+        // Calculer M^n
+        if (powerMatrix(matrix, n, &curr) < 0) {
+            freeMatrix(&prev);
+            return -1;
+        }
+
+        // Calculer la différence entre M^(n-1) et M^n (diff(M^(n-1), M^n))
+        double diff = diffMatrices(prev, curr);
+
+        if (diff < epsilon) {
+            // La convergence est atteinte
+            // Retourner n et la matrice M^n
+            *limitMatrix = curr;
+            freeMatrix(&prev);
+            return n;
+        }
+
+        // Libérer prev pour préparer pour la prochaine itération
+        freeMatrix(&prev);
+        prev = curr;
+    }
+
+    // Pas de convergence atteinte dans le nombre maximal d'itérations
+    // Libérer la dernière matrice calculée
+    // et retourner -1
+    freeMatrix(&prev);
+    return -1;
+}
+
+void dipslayConvergedMatrixPower(t_matrix matrix, double epsilon, int maxIter) {
+    t_matrix limitMatrix;
+    int n = computeConvergedMatrixPower(matrix, epsilon, &limitMatrix, maxIter);
+    if (n < 0) {
+        printf("No convergence within %d iterations.\n", maxIter);
+    } else {
+        printf("Converged at n = %d with limit matrix:\n", n);
+        displayMatrix(limitMatrix);
+        freeMatrix(&limitMatrix);
+    }
+}
+
+/**
+ * @brief Compute and display stationary distributions for all classes.
+ *
+ * @param M Full adjacency matrix.
+ * @param part Graph partition.
+ * @param hasse Hasse diagram.
+ * @param epsilon Convergence threshold.
+ */
+void computeStationaryDistributionsForAllClasses(
+        t_matrix M,
+        t_partition part,
+        t_hasse_diagram hasse,
+        double epsilon)
+{
+    t_class *class = part.classes;
+
+    printf("\n=== Stationary distributions for all classes ===\n");
+
+    while (class != NULL) {
+        displayClass(class);
+        printf(": \n");
+
+        t_matrix distrib = computeStationaryDistributionForOneClass(M, part, hasse, class, epsilon);
+
+        displayMatrix(distrib);
+        freeMatrix(&distrib);
+
+        class = class->next;
+    }
 }

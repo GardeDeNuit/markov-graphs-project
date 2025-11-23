@@ -27,6 +27,7 @@ typedef struct s_vertex {
 typedef struct s_class {
     int id;
     t_vertex *vertices;
+    int vertex_number;
     struct s_class *next;
 } t_class;
 
