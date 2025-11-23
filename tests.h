@@ -1,50 +1,58 @@
 #ifndef TESTS_H
 #define TESTS_H
 
-#define RESET_ALL          "\x1b[0m"
+/**
+ * @file tests.h
+ * @brief Framework API for unit tests registration and execution.
+ */
 
-#define COLOR_BLACK        "\x1b[30m"
-#define COLOR_RED          "\x1b[31m"
-#define COLOR_GREEN        "\x1b[32m"
-#define COLOR_YELLOW       "\x1b[33m"
-#define COLOR_BLUE         "\x1b[34m"
-#define COLOR_MAGENTA      "\x1b[35m"
-#define COLOR_CYAN         "\x1b[36m"
-#define COLOR_WHITE        "\x1b[37m"
-
-#define BACKGROUND_BLACK   "\x1b[40m"
-#define BACKGROUND_RED     "\x1b[41m"
-#define BACKGROUND_GREEN   "\x1b[42m"
-#define BACKGROUND_YELLOW  "\x1b[43m"
-#define BACKGROUND_BLUE    "\x1b[44m"
-#define BACKGROUND_MAGENTA "\x1b[45m"
-#define BACKGROUND_CYAN    "\x1b[46m"
-#define BACKGROUND_WHITE   "\x1b[47m"
-
-#define STYLE_BOLD         "\x1b[1m"
-#define STYLE_ITALIC       "\x1b[3m"
-#define STYLE_UNDERLINE    "\x1b[4m"
-
-
-// Simple test framework API
+/**
+ * @brief Function pointer type for test functions.
+ *
+ * Test functions must take no parameters and return 0 on success, non-zero on failure.
+ */
 typedef int (*test_fn)(void);
 
-// Simple internal test registry
+/**
+ * @brief Represents a registered test entry.
+ *
+ * Holds the test name, the function pointer, and an optional short comment/description.
+ *
+ * @param name Human-readable name of the test.
+ * @param fn Function pointer to the test function.
+ * @param comment Optional short description of the test.
+ */
 typedef struct {
     const char *name;
     test_fn fn;
     const char *comment;
 } test_entry;
 
-// Register a test (name, function, comment)
+/**
+ * @brief Register a test in the global test registry.
+ *
+ * @param name Human-readable name of the test (must be a valid C string).
+ * @param fn Pointer to the test function (must conform to test_fn).
+ * @param comment Optional short description of the test (may be NULL).
+ */
 void add_test(const char *name, test_fn fn, const char *comment);
 
-// Run all registered tests and print result per test. Returns number of failed tests.
+/**
+ * @brief Execute all registered tests and print results.
+ *
+ * Each test is executed in registration order. The framework prints the test
+ * name, optional comment, then runs the test and prints [PASS] or [FAIL].
+ *
+ * @return Number of failed tests (0 indicates all tests passed).
+ */
 int run_all_tests(void);
 
-// Helper to register built-in tests
+/**
+ * @brief Register built-in project tests into the global registry.
+ *
+ * Call this function once before run_all_tests() to populate the registry with
+ * the default unit tests.
+ */
 void register_project_tests(void);
 
-
 #endif // TESTS_H
-
