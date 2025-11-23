@@ -161,22 +161,23 @@ int isMarkovGraph(t_graph graph) {
     }
 
     double sum = 0.0;
-    int isMarkov = 1;
+    int isMarkov = 1; // Assume it's Markov until proven otherwise
 
     for (int i = 0; i < graph.size; i++) {
         sum = sumListValues(graph.values[i]);
-        // Tolérance pour les erreurs
+        printf("Sum of probabilities for vertex %d: %.5f\n", i + 1, sum);
+
+        // Tolerance for floating point errors
         if (sum < 0.99 || sum > 1.00) {
-            if (isMarkov) {
-                printf("The graph is not a Markov graph.\n");
-            }
-            printf("Sum of probabilities for vertex %d is %.5f (expected 1.0)\n", i + 1, sum);
             isMarkov = 0;
         }
     }
 
-    if (isMarkov == 1) {
+    if (isMarkov) {
         printf("The graph is a Markov graph.\n");
+    } else {
+        printf("The graph is not a Markov graph.\n");
     }
+
     return isMarkov;
 }
