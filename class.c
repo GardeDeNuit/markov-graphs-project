@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils.h"
 
 t_class* createClass(int class_id) {
     t_class* class = (t_class *)malloc(sizeof(t_class));
@@ -61,7 +62,7 @@ void displayClass(t_class *class) {
         fprintf(stderr, "displayClass: class pointer is NULL\n");
         return;
     }
-    printf("Class %d: {", class->id);
+    printf("Class %s: {", getID(class->id));
     displayVertices(class->vertices);
     printf("}");
 }
