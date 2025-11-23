@@ -4,16 +4,32 @@
 #include "graph.h"
 #include "hasse.h"
 
+/**
+ * @brief Exports a graph to a Mermaid flowchart file.
+ *
+ * Creates a Mermaid-formatted file representing the graph with:
+ * - All vertices
+ * - All edges (with weights)
+ * - Styling heme : Neo
+ *
+ * @param graph The graph to export.
+ * @param path Destination file path for the Mermaid file.
+ * @return 1 on success, 0 on failure.
+ */
 int exportGraphToMermaidFile(t_graph graph, const char* path);
-void appendVertex(int vertex, FILE *file);
-void appendGraphVertexes(t_graph graph, FILE *file);
-void appendEdge(int src, int dest, double weight, FILE *file);
-void appendGraphEdges(t_graph graph, FILE *file);
-char** buildClassLabels(t_partition *partition, int num_classes);
-void writeNodes(FILE *file, char **class_labels, int num_classes);
-void writeEdges(FILE *file, t_link_array *links);
-void freeClassLabels(char **class_labels, int num_classes);
-int exportHasseDiagramToMermaidFile(t_link_array *links, t_partition *partition, int num_classes, const char* path);
 
+/**
+ * @brief Exports a Hasse diagram to a Mermaid flowchart file.
+ *
+ * Creates a Mermaid-formatted file representing the Hasse diagram with:
+ * - Classes as labeled nodes (A, B, C, ...)
+ * - Links between classes
+ * - Styling layout : ELK
+ *
+ * @param hasse The Hasse diagram to export.
+ * @param path Destination file path for the Mermaid file.
+ * @return 1 on success, 0 on failure.
+ */
+int exportHasseDiagramToMermaidFile(t_hasse_diagram hasse, const char* path);
 
 #endif //MERMAIDCHART_FILE_GENERATOR_H
