@@ -215,7 +215,7 @@ t_association_array createAssociationArray(t_graph graph, t_partition partition)
 }
 
 t_hasse_diagram createHasseDiagram(t_graph g){
-    printf("=== Hasse Diagram Creation ===\n\n");
+    printf("=== Hasse Diagram Creation ===\n");
 
     // Step 1: Compute strongly connected components
     t_partition* partition = tarjan(g);
@@ -271,7 +271,7 @@ t_hasse_diagram createHasseDiagram(t_graph g){
 }
 
 void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
-    printf("\n=== Displaying Graph Detailed Characteristics ===\n");
+    printf("\n=== Displaying Graph Detailed Characteristics ===\n\n");
 
     t_partition *part = hasse.partition;
     int nb_classes = part->class_number;
@@ -347,5 +347,4 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
     printf("\n   Graph is %sirreducible\n",
            isIrreductible(hasse) ? "" : "NOT ");
 
-    printf("=== End of Detailed Characteristics ===\n");
 }

@@ -39,10 +39,11 @@ int main(void) {
     displayPartition(partition);
 
 
-    printf("\n Validation 2 ; “Production of a Hasse diagram to display the links between each class. \n\n");
+    printf("\n Validation 2 : “Production of a Hasse diagram to display the links between each class. \n\n");
     t_hasse_diagram hasse = createHasseDiagram(graph);
 
     displayHasseDiagram(hasse);
+
 
     exportHasseDiagramToMermaidFile(hasse, "../results/exemple_valid_step3_hasse_mermaid.mmd");
     /*printf("Irreductible ? : %d\n", isIrreductible(hasse));
@@ -50,9 +51,15 @@ int main(void) {
     printf("Persistant C ? : %d\n", isPersistantClass(hasse, 3));
     printf("Absorbing ? : %d\n", isAbsorbingState(hasse, 4, graph.size));*/
 
+    printf("\n Validation 3 : We want to know the state of the graph’s classes. \n");
     displayDetailedCharacteristics(hasse,graph.size);
 
+    printf("\n ===== PART 3 ===== \n\n");
 
+    printf(" Validation 1 : ");
+    t_matrix matrix;
+    createMatrixFromGraph(graph, &matrix);
+    dipslayConvergedMatrixPower(matrix, 0.01, 200);
 
     /*
     // Enregistrer les tests du projet puis exécuter tous les tests.
