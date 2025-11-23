@@ -5,18 +5,6 @@
 #include "hasse.h"
 #include "tarjan.h"
 
-/**
- * @brief Make a Hasse Diagram
- */
-
-/* private functions =================================================== */
-
-/**
- * @brief Remove redundant transitive links from a link array.
- * @param p_link_array Pointer to the link array to be cleaned.
- * @return Nothing.
- */
-
 void removeTransitiveLinks(t_link_array* p_link_array)
 {
     int i = 0;
@@ -25,19 +13,27 @@ void removeTransitiveLinks(t_link_array* p_link_array)
         t_link link1 = p_link_array->links[i];
         int j = 0;
         int to_remove = 0;
+
+        // Check if link1 can be inferred through other links
         while (j < p_link_array->logical_size && !to_remove)
         {
             if (j != i)
             {
                 t_link link2 = p_link_array->links[j];
+
+                // If link2 starts from the same source as link1
                 if (link1.src_id == link2.src_id)
                 {
                     int k = 0;
+                    // Look for a third link that creates a transitive path
                     while (k < p_link_array->logical_size && !to_remove)
                     {
                         if (k != j && k != i)
                         {
                             t_link link3 = p_link_array->links[k];
+
+                            // If we find: link2.src -> link2.dest -> link1.dest
+                            // Then link1 (src -> dest) is redundant
                             if ((link3.src_id == link2.dest_id) && (link3.dest_id == link1.dest_id))
                             {
                                 to_remove = 1;
@@ -49,8 +45,10 @@ void removeTransitiveLinks(t_link_array* p_link_array)
             }
             j++;
         }
+
         if (to_remove)
         {
+            // Remove by replacing with last element
             p_link_array->links[i] = p_link_array->links[p_link_array->logical_size - 1];
             p_link_array->logical_size--;
         }
@@ -61,13 +59,6 @@ void removeTransitiveLinks(t_link_array* p_link_array)
     }
 }
 
-/**
- * @brief Check if a link already exists between two nodes.
- * @param link_array Link array to search in.
- * @param src Source node.
- * @param dest Destination node.
- * @return 1 if the link exists, 0 otherwise.
- */
 int linkExists(t_link_array link_array, int src, int dest)
 {
     for (int i = 0; i < link_array.logical_size; i++) {
@@ -78,21 +69,14 @@ int linkExists(t_link_array link_array, int src, int dest)
     return 0;
 }
 
-/**
- * @brief Add a link between two nodes in the link array.
- * @param link_array Link array to update.
- * @param src Source node.
- * @param dest Destination node.
- * @return Nothing.
- */
 int addLink(t_link_array *link_array, int src, int dest) {
+    // Don't add duplicate links
     if (linkExists(*link_array, src, dest)) {
-        printf("Link already exists: %d -> %d\n", src, dest);
         return 0;
     }
 
+    // Resize array if capacity is reached
     if (link_array->logical_size >= link_array->physical_size) {
-        // Augmenter la taille physique du tableau
         link_array->physical_size *= 2;
         t_link* new_links = realloc(link_array->links, link_array->physical_size * sizeof(t_link));
         if (new_links == NULL) {
@@ -100,36 +84,30 @@ int addLink(t_link_array *link_array, int src, int dest) {
             return -1;
         }
         link_array->links = new_links;
-        printf("Link array resized to %d\n", link_array->physical_size);
     }
 
+    // Add the new link
     link_array->links[link_array->logical_size].src_id = src;
     link_array->links[link_array->logical_size].dest_id = dest;
     link_array->logical_size++;
 
-    printf("New link added: %d -> %d (total links: %d)\n", src, dest, link_array->logical_size);
     return 1;
 }
 
-/**
- * @brief Display the Hasse diagram.
- * @param hasse The Hasse diagram to display.
- * @return Nothing.
- */
 void displayHasseDiagram(t_hasse_diagram hasse) {
     if (hasse.logical_size == 0) {
-        printf("Aucun lien entre les classes.\n");
+        printf("No links between classes.\n");
         return;
     }
 
-    printf("Liens entre classes :\n");
+    printf("Links between classes:\n");
     for (int i = 0; i < hasse.logical_size; i++) {
         int from = hasse.links[i].src_id;
         int to = hasse.links[i].dest_id;
         t_class *from_class = NULL;
         t_class *to_class = NULL;
 
-        // On parcourt les classes pour pouvoir les récupérer et les afficher
+        // Find the source and destination classes
         t_class* curr_class = hasse.partition->classes;
         while (curr_class != NULL) {
             if (from_class == NULL && curr_class->id == from) {
@@ -151,29 +129,24 @@ void displayHasseDiagram(t_hasse_diagram hasse) {
     }
 }
 
-/**
- * @brief Determine the type of each class (persistent or transient).
- * @param class_array Array of class indices.
- * @param num_vertices Number of vertices.
- * @param class_links Link array between classes.
- * @return Array of class types (0 = persistent, 1 = transient).
- */
-
 t_class_type_array createClassTypeArray(t_hasse_diagram hasse) {
+    // Allocate array for all classes
     t_class_type_array type_array = calloc(hasse.logical_size, sizeof(int));
     if (!type_array) {
-        perror("Erreur allocation type_array");
+        perror("createClassTypeArray: allocation failed");
         exit(EXIT_FAILURE);
     }
 
+    // Initialize all classes as persistent (0)
     for (int i = 0; i < hasse.logical_size; i++) {
-        type_array[i] = 0;  // 0 = persistante par défaut
+        type_array[i] = 0;
 
+        // Check if this class has outgoing links to other classes
         for (int j = 0; j < hasse.logical_size; j++) {
             if (hasse.links[j].src_id == i &&
                 hasse.links[j].dest_id != i) {
-
-                type_array[i] = 1; // 1 = transitoire
+                // Found an outgoing link to a different class
+                type_array[i] = 1; // Mark as transient
                 break;
             }
         }
@@ -187,58 +160,51 @@ void freeClassTypeArray(t_class_type_array type_array) {
 }
 
 int isPersistantClass(t_hasse_diagram hasse, int class_id) {
+    // Create type array to determine class type
     t_class_type_array type_array = createClassTypeArray(hasse);
     int persistante = (type_array[class_id] == 0);
     free(type_array);
     return persistante;
 }
 
-/**
- * @brief Check if a class is absorbing.
- * @param class_sizes Array of class sizes.
- * @param class_nb Index of the class to check.
- * @param type_array Array of class types.
- * @return 1 if absorbing, 0 otherwise.
- */
 int isAbsorbingState(t_hasse_diagram hasse, int state_id, int graph_size) {
+    // Get the class ID of this state
     int class_id = hasse.association_array[state_id - 1];
 
-    // si la classe est transitoire → pas absorbante
+    // If the class is transient, the state cannot be absorbing
     if (!isPersistantClass(hasse, class_id))
         return 0;
 
-    // on compte le nombre de sommets de la classe
+    // Count how many states belong to this class
     int count = 0;
     for (int i = 0; i < graph_size; i++) {
         if (hasse.association_array[i] == class_id) {
             count++;
             if (count > 1)
-                return 0; // plus d'un état → pas absorbant
+                return 0; // More than one state means not absorbing
         }
     }
 
-    return 1;  // un seul état et classe persistante → absorbant
+    // Single state in a persistent class = absorbing state
+    return 1;
 }
 
-/**
- * @brief Check if the graph is irreducible.
- * @param type_array Array of class indices.
- * @param link_array .
- * @return 1 if irreducible, 0 otherwise.
- */
-
 int isIrreductible(t_hasse_diagram hasse) {
-    return hasse.logical_size == 1;
+    // A graph is irreducible if it has only one strongly connected component
+    return hasse.partition->class_number == 1;
 }
 
 t_association_array createAssociationArray(t_graph graph, t_partition partition) {
+    // Allocate array mapping each vertex to its class ID
     t_association_array array = calloc(graph.size, sizeof(int));
 
+    // Traverse all classes and their vertices
     t_class *curr_class = partition.classes;
     while (curr_class != NULL) {
         t_vertex *curr_vertex = curr_class->vertices;
         while (curr_vertex != NULL) {
             int vertex_id = curr_vertex->value;
+            // Map vertex to class ID (convert to 0-indexed)
             array[vertex_id - 1] = curr_class->id;
             curr_vertex = curr_vertex->next;
         }
@@ -250,10 +216,15 @@ t_association_array createAssociationArray(t_graph graph, t_partition partition)
 
 t_hasse_diagram createHasseDiagram(t_graph g){
     printf("=== Hasse Diagram Creation ===\n\n");
+
+    // Step 1: Compute strongly connected components
     t_partition* partition = tarjan(g);
     displayPartition(partition);
+
+    // Step 2: Create vertex-to-class mapping
     t_association_array association_array = createAssociationArray(g, *partition);
 
+    // Step 3: Initialize Hasse diagram structure
     t_hasse_diagram hasse;
     hasse.logical_size = 0;
     hasse.physical_size = g.size;
@@ -272,14 +243,17 @@ t_hasse_diagram createHasseDiagram(t_graph g){
     printf("Graph size: %d\n", g.size);
     printf("Number of classes: %d\n", partition->class_number);
 
+    // Step 4: Build links between different classes
     for (int i = 0; i < g.size; i++) {
-        int ci = association_array[i];
+        int ci = association_array[i];  // Class of current vertex
         t_cell *cur = g.values[i].head;
 
+        // Examine all neighbors
         while (cur != NULL) {
             int v = cur->vertex - 1;
-            int cj = association_array[v];
+            int cj = association_array[v];  // Class of neighbor
 
+            // Add link only if classes are different
             if (ci != cj) {
                 addLink(&hasse, ci, cj);
             }
@@ -287,6 +261,7 @@ t_hasse_diagram createHasseDiagram(t_graph g){
         }
     }
 
+    // Step 5: Remove transitive redundancies
     printf("Before transitive reduction: %d links\n", hasse.logical_size);
     removeTransitiveLinks(&hasse);
     printf("After transitive reduction: %d links\n", hasse.logical_size);
@@ -301,9 +276,7 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
     t_partition *part = hasse.partition;
     int nb_classes = part->class_number;
 
-    // -------------------------
     // Count transient and persistent classes
-    // -------------------------
     int transient_count = 0, persistent_count = 0;
     for (int i = 0; i < nb_classes; i++) {
         if (isPersistantClass(hasse, i))
@@ -312,9 +285,7 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
             transient_count++;
     }
 
-    // -------------------------
-    // Detect absorbing states
-    // -------------------------
+    // Detect all absorbing states
     int absorbing_states[graph_size];
     int absorbing_count = 0;
 
@@ -324,9 +295,7 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
         }
     }
 
-    // -------------------------
-    // Print summary
-    // -------------------------
+    // Print summary statistics
     printf("   Summary:\n");
     printf("     - Transient classes   : %d\n", transient_count);
     printf("     - Persistent classes  : %d\n", persistent_count);
@@ -342,16 +311,14 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
     }
     printf("\n\n");
 
-    // -------------------------
-    // Display details of each class
-    // -------------------------
+    // Display detailed information for each class
     printf("   Detailed class information:\n");
 
     t_class *classe = part->classes;
     while (classe != NULL) {
         int id = classe->id;
 
-        // Print class vertices
+        // Print vertices in this class
         printf("  Class C%d : {", id);
         t_vertex *v = classe->vertices;
         while (v != NULL) {
@@ -364,7 +331,7 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
         // Print class type
         printf("     Type : %s\n", isPersistantClass(hasse, id) ? "Persistent" : "Transient");
 
-        // Check if class contains a single absorbing state
+        // Check for absorbing states in singleton classes
         if (classe->vertices != NULL && classe->vertices->next == NULL) {
             int state_id = classe->vertices->value;
             if (isAbsorbingState(hasse, state_id, graph_size))
@@ -376,9 +343,7 @@ void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
         classe = classe->next;
     }
 
-    // -------------------------
-    // Graph irreducibility
-    // -------------------------
+    // Display graph irreducibility
     printf("\n   Graph is %sirreducible\n",
            isIrreductible(hasse) ? "" : "NOT ");
 
