@@ -9,6 +9,7 @@ t_partition * createPartition(void){
         return NULL;
     }
     partition->classes = NULL;
+    partition->class_number = 0;
     return partition;
 }
 
@@ -45,6 +46,7 @@ int addClassToPartition(t_partition *partition, t_class *class){
     }
     class->next = partition->classes;
     partition->classes = class;
+    partition->class_number++;
     return 1;
 }
 
@@ -62,13 +64,5 @@ void displayPartition(t_partition *partition){
 }
 
 int generateClassId(t_partition partition) {
-    int index = 0;
-    // Calculate the number of existing classes to generate a unique id
-    t_class *curr = partition.classes;
-    while (curr != NULL) {
-        index++;
-        curr = curr->next;
-    }
-    index++; // Increment for the new id
-    return index;
+    return partition.class_number + 1;
 }

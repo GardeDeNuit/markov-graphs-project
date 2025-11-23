@@ -15,6 +15,7 @@
  */
 typedef struct s_partition{
     t_class *classes;
+    int class_number;
 } t_partition;
 
 /**
