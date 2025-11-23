@@ -14,4 +14,4 @@ add_executable(TI_301_PJT
         class.c
         partition.c
         tarjan.c
-        tests.c)
+        hasse.c)

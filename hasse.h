@@ -4,42 +4,37 @@
 #include "partition.h"
 #include "graph.h"
 
-struct s_link {
-    int src_nb;
-    int dest_nb;
-};
+typedef struct s_link {
+    int src_id;
+    int dest_id;
+} t_link;
 
-typedef struct s_link t_link;
+typedef int* t_class_type_array;
+typedef int* t_association_array;
 
-struct s_link_array {
-    t_link * links;
-    int log_size;
-    int max_size;
-};
+typedef struct s_link_array {
+    t_link* links;
+    t_partition *partition;
+    t_association_array association_array;
+    int logical_size;
+    int physical_size;
+} t_link_array;
 
+typedef t_link_array t_hasse_diagram;
 
-typedef struct s_link_array t_link_array;
+/* private functions =================================================== */
 
-/**
- * @brief Build an array mapping each vertex to its class index.
- * @param graph Pointer to the graph structure.
- * @param partition Partition containing the classes and their vertices.
- * @return Dynamically allocated array of size graph->size, where each entry
- *         stores the class index of the corresponding vertex (0-based).
- *         The caller is responsible for freeing this array.
- */
-int* makeClassArray(t_graph *graph, t_partition *partition);
+static void removeTransitiveLinks(t_link_array* link_array);
+static int linkExists(t_link_array link_array, int dept, int dest);
+static int addLink(t_link_array *link_array, int dept, int dest);
+static char** buildName(t_partition *partition, int num_classes);
+static void displayHasseDiagram(t_hasse_diagram hasse);
+t_class_type_array createClassTypeArray(t_link_array link_array);
+int isAbsorbingState(int* class_sizes,int class_nb,t_class_type_array type_array);
+int isIrreductible(t_class_type_array type_array,t_link_array link_array);
 
-int *ClassType(int*,int,t_link_array);
-int isAbsorbingState(int*,int,int*);
-int isIrreductible(int*,int);
+t_association_array createAssociationArray(t_graph *graph, t_partition *partition);
+
 void addLinkToHasseDiagram(t_link_array *hasse, t_graph g, int *class_array);
-/**
- * @brief Creates a link array from the given partition and graph.
- *
- * @param part The partition of the graph.
- * @param graph The adjacency list representation of the graph.
- * @return The created link array.
- */
 
 #endif

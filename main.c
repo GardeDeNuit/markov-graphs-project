@@ -42,9 +42,9 @@ int main(void) {
 
         // 5️⃣ Créer et initialiser le diagramme de Hasse
         t_link_array hasse;
-        hasse.log_size = 0;
-        hasse.max_size = num_classes * num_classes;  // pire cas
-        hasse.links = malloc(hasse.max_size * sizeof(t_link));
+        hasse.logical_size = 0;
+        hasse.physical_size = num_classes * num_classes;  // pire cas
+        hasse.links = malloc(hasse.physical_size * sizeof(t_link));
 
         // 6️⃣ Construire les liens Hasse entre classes
 
@@ -60,9 +60,9 @@ int main(void) {
         }
 
         // Ajouter les liens Hasse dans le graph temporaire
-        for (int i = 0; i < hasse.log_size; i++) {
-            int src = hasse.links[i].src_nb;
-            int dest = hasse.links[i].dest_nb;
+        for (int i = 0; i < hasse.logical_size; i++) {
+            int src = hasse.links[i].src_id;
+            int dest = hasse.links[i].dest_id;
             addCell(&hasseGraph.values[src], dest + 1, 1.0);  // +1 pour 1-based
         }
 

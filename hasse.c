@@ -1,7 +1,9 @@
 #include <malloc.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "hasse.h"
+#include "tarjan.h"
 
 /**
  * @brief Make a Hasse Diagram
@@ -17,28 +19,28 @@
  * @return Nothing.
  */
 
-static void removeTransitiveLinks(t_link_array *p_link_array)
+static void removeTransitiveLinks(t_link_array* p_link_array)
 {
     int i = 0;
-    while (i < p_link_array->log_size)
+    while (i < p_link_array->logical_size)
     {
         t_link link1 = p_link_array->links[i];
         int j = 0;
         int to_remove = 0;
-        while (j < p_link_array->log_size && !to_remove)
+        while (j < p_link_array->logical_size && !to_remove)
         {
             if (j != i)
             {
                 t_link link2 = p_link_array->links[j];
-                if (link1.src_nb == link2.src_nb)
+                if (link1.src_id == link2.src_id)
                 {
                     int k = 0;
-                    while (k < p_link_array->log_size && !to_remove)
+                    while (k < p_link_array->logical_size && !to_remove)
                     {
                         if (k != j && k != i)
                         {
                             t_link link3 = p_link_array->links[k];
-                            if ((link3.src_nb == link2.dest_nb) && (link3.dest_nb == link1.dest_nb))
+                            if ((link3.src_id == link2.dest_id) && (link3.dest_id == link1.dest_id))
                             {
                                 to_remove = 1;
                             }
@@ -51,8 +53,8 @@ static void removeTransitiveLinks(t_link_array *p_link_array)
         }
         if (to_remove)
         {
-            p_link_array->links[i] = p_link_array->links[p_link_array->log_size - 1];
-            p_link_array->log_size--;
+            p_link_array->links[i] = p_link_array->links[p_link_array->logical_size - 1];
+            p_link_array->logical_size--;
         }
         else
         {
@@ -64,17 +66,14 @@ static void removeTransitiveLinks(t_link_array *p_link_array)
 /**
  * @brief Check if a link already exists between two nodes.
  * @param link_array Link array to search in.
- * @param dept Source node.
+ * @param src Source node.
  * @param dest Destination node.
  * @return 1 if the link exists, 0 otherwise.
  */
-
-static int linkExists(t_link_array *link_array, int dept, int dest)
+static int linkExists(t_link_array link_array, int src, int dest)
 {
-    for (int i = 0; i < link_array->log_size; i++)
-    {
-        if (link_array->links[i].src_nb == dept && link_array->links[i].dest_nb == dest)
-        {
+    for (int i = 0; i < link_array.logical_size; i++) {
+        if (link_array.links[i].src_id == src && link_array.links[i].dest_id == dest) {
             return 1;
         }
     }
@@ -84,104 +83,68 @@ static int linkExists(t_link_array *link_array, int dept, int dest)
 /**
  * @brief Add a link between two nodes in the link array.
  * @param link_array Link array to update.
- * @param dept Source node.
+ * @param src Source node.
  * @param dest Destination node.
  * @return Nothing.
  */
+static int addLink(t_link_array *link_array, int src, int dest) {
+    if (linkExists(*link_array, src, dest)) return 0;
 
-static void addLink(t_link_array *link_array, int dept, int dest)
-{
-
-    if (linkExists(link_array, dept, dest))
-        return;
-
-    if (link_array->log_size >= link_array->max_size)
-    {
-        link_array->max_size *= 2;
-        link_array->links = realloc(link_array->links, link_array->max_size * sizeof(t_link));
-    }
-
-    link_array->links[link_array->log_size].src_nb = dept;
-    link_array->links[link_array->log_size].dest_nb = dest;
-    link_array->log_size++;
-}
-
-/**
- * @brief Build an array of strings representing class names.
- * @param partition Partition containing the classes.
- * @param num_classes Number of classes.
- * @return Array of strings representing class names.
- */
-
-static char** buildName(t_partition *partition, int num_classes)
-{
-    char **class_names = malloc(num_classes * sizeof(char*));
-
-    int class_num = 0;
-    t_class *curr_class = partition->classes;
-
-    while (curr_class != NULL && class_num < num_classes)
-    {
-        class_names[class_num] = malloc(64 * sizeof(char));
-        memset(class_names[class_num], 0, 64);
-
-        strcpy(class_names[class_num], "{");
-
-        t_vertex *curr_vertex = curr_class->vertices;
-        int first = 1;
-        while (curr_vertex != NULL)
-        {
-            if (!first) strcat(class_names[class_num], ",");
-
-            char vertex_str[16];
-            snprintf(vertex_str, sizeof(vertex_str), "%d", curr_vertex->value);
-            strcat(class_names[class_num], vertex_str);
-
-            first = 0;
-            curr_vertex = curr_vertex->next;
+    if (link_array->logical_size >= link_array->physical_size) {
+      	// Augmenter la taille physique du tableau
+        link_array->physical_size *= 2;
+        t_link* new_links = realloc(link_array->links, link_array->physical_size * sizeof(t_link));
+        if (new_links == NULL) {
+            perror("addLink: realloc failed");
+            return -1;
         }
-
-        strcat(class_names[class_num], "}");
-
-        class_num++;
-        curr_class = curr_class->next;
+        link_array->links = new_links;
     }
 
-    return class_names;
+    link_array->links[link_array->logical_size].src_id = src;
+    link_array->links[link_array->logical_size].dest_id = dest;
+    link_array->logical_size++;
+    return 1;
 }
 
 /**
- * @brief Display the Hasse diagram after removing redundant links.
- * @param links Link array between classes.
- * @param partition Partition containing the classes.
- * @param class_array Array of class indices.
- * @param num_classes Number of classes.
+ * @brief Display the Hasse diagram.
+ * @param hasse The Hasse diagram to display.
  * @return Nothing.
  */
-
-static void displayHasse(t_link_array *links, t_partition *partition, int *class_array, int num_classes)
-{
-    printf("\n=== Diagramme de Hasse (après suppression des redondances) ===\n");
-
-    if (links->log_size == 0) {
+static void displayHasseDiagram(t_hasse_diagram hasse) {
+    if (hasse.logical_size == 0) {
         printf("Aucun lien entre les classes.\n");
         return;
     }
 
-    char **class_names = buildName(partition, num_classes);
+    printf("Liens entre classes :\n");
+    for (int i = 0; i < hasse.logical_size; i++) {
+        int from = hasse.links[i].src_id;
+        int to = hasse.links[i].dest_id;
+        t_class *from_class = NULL;
+        t_class *to_class = NULL;
 
-    printf("Liens entre classes:\n");
-    for (int i = 0; i < links->log_size; i++)
-    {
-        int from = links->links[i].src_nb;
-        int to = links->links[i].dest_nb;
-        printf("%s -> %s\n", class_names[from], class_names[to]);
-    }
+        // On parcourt les classes pour pouvoir les récupérer et les afficher
+        t_class* curr_class = hasse.partition->classes;
+        while (curr_class != NULL) {
+            if (from_class == NULL && curr_class->id == from) {
+                from_class = curr_class;
+            }
+            if (to_class == NULL && curr_class->id == to) {
+                to_class = curr_class;
+            }
+            if (from_class != NULL && to_class != NULL) {
+                break;
+            }
+            curr_class = curr_class->next;
+        }
 
-    for (int i = 0; i < num_classes; i++) {
-        free(class_names[i]);
+        displayClass(from_class);
+        printf(" --> ");
+        displayClass(to_class);
+        printf("\n");
     }
-    free(class_names);
 }
 
 /**
@@ -199,9 +162,9 @@ static int* ClassType(int* class_array,int num_vertices,t_link_array class_links
         type_array[i] = 0;
     }
 
-    for (int i = 0; i < class_links.log_size; i++) {
-        int dept = class_links.links[i].src_nb;
-        int dest = class_links.links[i].dest_nb;
+    for (int i = 0; i < link_array.logical_size; i++) {
+        int dept = link_array.links[i].src_id;
+        int dest = link_array.links[i].dest_id;
 
         if (dept != dest) {
             type_array[dest] = 1;
@@ -211,13 +174,9 @@ static int* ClassType(int* class_array,int num_vertices,t_link_array class_links
     return type_array;
 }
 
-/**
- * @brief Check if a class is absorbing.
- * @param class_sizes Array of class sizes.
- * @param class_nb Index of the class to check.
- * @param type_array Array of class types.
- * @return 1 if absorbing, 0 otherwise.
- */
+void freeClassTypeArray(t_class_type_array type_array) {
+    free(type_array);
+}
 
 static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
 
@@ -226,7 +185,7 @@ static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
             return 0;
         }
     }
-    return 1;
+    return 0;
 }
 
 /**
@@ -247,53 +206,48 @@ static int isIrreductible(int* class_array,int num_vertices) {
     return 1;
 }
 
-/* public functions =================================================== */
-
-
-int* makeClassArray(t_graph *graph, t_partition *partition)
-{
-    int *class_array = malloc(graph->size * sizeof(int));
-    memset(class_array, -1, graph->size * sizeof(int));
-
-    int class_num = 0;
-    t_class *curr_class = partition->classes;
-
-    while (curr_class != NULL)
-    {
-
+t_association_array createAssociationArray(t_graph graph, t_partition partition) {
+    t_association_array array = calloc(graph.size, sizeof(int));
+    t_class *curr_class = partition.classes;
+    while (curr_class != NULL) {
         t_vertex *curr_vertex = curr_class->vertices;
-        while (curr_vertex != NULL)
-        {
+        while (curr_vertex != NULL) {
             int vertex_id = curr_vertex->value;
-
-            class_array[vertex_id - 1] = class_num;
+            array[vertex_id - 1] = curr_class->id;
             curr_vertex = curr_vertex->next;
         }
-
-        class_num++;
         curr_class = curr_class->next;
     }
-
-    return class_array;
+    return array;
 }
 
-void addLinkToHasseDiagram(t_link_array *hasse, t_graph g, int *class_array){
-    for (int i = 0; i < g.size; i++) {   // <-- FIX ici
-        int ci = class_array[i];
+t_hasse_diagram createHasseDiagram(t_graph g){
+    t_partition* partition = tarjan(g);
+    t_association_array association_array = createAssociationArray(&g, partition);
+    t_hasse_diagram hasse;
+    hasse.logical_size = 0;
+    hasse.physical_size = g.size;
+    hasse.links = malloc(hasse.physical_size * sizeof(t_link));
+    hasse.partition = partition;
+    hasse.association_array = association_array;
+
+    for (int i = 0; i < g.size; i++) {
+        int ci = association_array[i];
 
         t_cell *cur = g.values[i].head;
 
         while (cur != NULL) {
-            int v = cur->vertex - 1; // sommet en 0-based
-            int cj = class_array[v];
+            int v = cur->vertex - 1;
+            int cj = association_array[v];
 
             if (ci != cj) {
-                addLink(hasse, ci, cj);
+                addLink(&hasse, ci, cj);
             }
 
             cur = cur->next;
         }
     }
 
-    removeTransitiveLinks(hasse);
+    removeTransitiveLinks(&hasse);
+    return hasse;
 }

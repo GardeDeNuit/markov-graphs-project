@@ -95,10 +95,10 @@ void writeNodes(FILE *file, char **class_labels, int num_classes)
 
 void writeEdges(FILE *file, t_link_array *links)
 {
-    for (int i = 0; i < links->log_size; i++)
+    for (int i = 0; i < links->logical_size; i++)
     {
-        int from = links->links[i].src_nb;
-        int to = links->links[i].dest_nb;
+        int from = links->links[i].src_id;
+        int to = links->links[i].dest_id;
 
         char from_id = 'A' + from;
         char to_id = 'A' + to;
