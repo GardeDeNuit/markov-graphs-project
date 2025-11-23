@@ -155,12 +155,8 @@ static void displayHasseDiagram(t_hasse_diagram hasse) {
  * @return Array of class types (0 = persistent, 1 = transient).
  */
 
-static int* ClassType(int* class_array,int num_vertices,t_link_array class_links) {
-    int *type_array = malloc(num_vertices * sizeof(int));
-
-    for (int i = 0; i < num_vertices; i++) {
-        type_array[i] = 0;
-    }
+t_class_type_array createClassTypeArray(t_link_array link_array) {
+    t_class_type_array type_array = calloc(link_array.logical_size, sizeof(int));
 
     for (int i = 0; i < link_array.logical_size; i++) {
         int dept = link_array.links[i].src_id;
@@ -178,11 +174,31 @@ void freeClassTypeArray(t_class_type_array type_array) {
     free(type_array);
 }
 
-static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
+int isPersistantClass(t_hasse_diagram hasse, int class_id) {
+    t_class_type_array type_array = createClassTypeArray(hasse);
+    int is_persistant = type_array[class_id];
+    freeClassTypeArray(type_array);
+    return is_persistant;
+}
 
-    for (int i = 0; i < class_sizes[class_nb]; i++) {
-        if (type_array[i] != 0) {
-            return 0;
+/**
+ * @brief Check if a class is absorbing.
+ * @param class_sizes Array of class sizes.
+ * @param class_nb Index of the class to check.
+ * @param type_array Array of class types.
+ * @return 1 if absorbing, 0 otherwise.
+ */
+int isAbsorbingState(t_hasse_diagram hasse, int state_id, int graph_size) {
+    int state_class = hasse.association_array[state_id - 1];
+    if (isPersistantClass(hasse, state_class)) {
+        int class_occurrence = 0;
+        for (int i = 0; i < graph_size; i++) {
+            if (hasse.association_array[i] == state_class) {
+                class_occurrence++;
+            }
+            if (class_occurrence > 1) {
+                return 0;
+            }
         }
     }
     return 0;
@@ -190,20 +206,13 @@ static int isAbsorbingState(int* class_sizes,int class_nb,int* type_array) {
 
 /**
  * @brief Check if the graph is irreducible.
- * @param class_array Array of class indices.
- * @param num_vertices Number of vertices.
+ * @param type_array Array of class indices.
+ * @param link_array .
  * @return 1 if irreducible, 0 otherwise.
  */
 
-static int isIrreductible(int* class_array,int num_vertices) {
-
-    int first_class = class_array[0];
-    for (int i = 1; i < num_vertices; i++) {
-        if (class_array[i] != first_class) {
-            return 0;
-        }
-    }
-    return 1;
+int isIrreductible(t_hasse_diagram hasse){
+    return hasse.logical_size == 1;
 }
 
 t_association_array createAssociationArray(t_graph graph, t_partition partition) {
