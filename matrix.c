@@ -246,7 +246,7 @@ static t_matrix computeStationaryDistributionForOneClass(
     int n = computeConvergedMatrixPower(subM, epsilon, &limit, 2000);
 
     if (n == -1) {
-        fprintf(stderr, "Class %d did not converge.\n", class_id);
+        printf("Class %s did not converge.\n", getID(class_id));
         t_matrix zero = createMatrix(1, size);
         freeMatrix(&subM);
         return zero;
@@ -505,8 +505,6 @@ void computeStationaryDistributionsForAllClasses(
         double epsilon)
 {
     t_class *class = part.classes;
-
-    printf("\n=== Stationary distributions for all classes ===\n\n");
 
     while (class != NULL) {
         displayClass(class);

@@ -188,7 +188,7 @@ static void freeClassLabels(char **class_labels, int num_classes)
 /* Public functions ==================================================== */
 
 int exportGraphToMermaidFile(t_graph graph, const char* path) {
-    printf("\n=== Exporting Graph to Mermaid ===\n\n");
+    printf("=== Exporting Graph to Mermaid ===\n");
     printf("Path: %s\n", path);
     printf("Number of vertices: %d\n", graph.size);
 
@@ -211,13 +211,13 @@ int exportGraphToMermaidFile(t_graph graph, const char* path) {
 
     fclose(file);
 
-    printf("=== Export Complete ===\n\n");
+    printf("=== Export Complete ===\n");
     return 1;
 }
 
 int exportHasseDiagramToMermaidFile(t_hasse_diagram hasse, const char* path)
 {
-    printf("\n=== Exporting Hasse Diagram to Mermaid ===\n");
+    printf("=== Exporting Hasse Diagram to Mermaid ===\n");
     printf("Path: %s\n", path);
     printf("Number of classes: %d\n", hasse.partition->class_number);
     printf("Number of links: %d\n", hasse.logical_size);
@@ -250,6 +250,6 @@ int exportHasseDiagramToMermaidFile(t_hasse_diagram hasse, const char* path)
     freeClassLabels(class_labels, hasse.partition->class_number);
     fclose(file);
 
-    printf("=== Export Complete ===\n\n");
+    printf("=== Export Complete ===\n");
     return 1;
 }

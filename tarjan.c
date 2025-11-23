@@ -239,8 +239,6 @@ void tarjanVisit(
 }
 
 t_partition *tarjan(t_graph graph) {
-    printf("\n=== Computing Strongly Connected Components (Tarjan's Algorithm) ===\n\n");
-
     // Step 1: Create empty partition
     printf("Step 1: Creating partition structure...\n");
     t_partition *partition = createPartition();
