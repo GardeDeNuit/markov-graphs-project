@@ -12,7 +12,7 @@
  * @param tarjan_vertices Array of Tarjan vertices to free.
  * @param count Number of vertices that were successfully allocated.
  */
-static void freeTarjanVerticesPartial(t_tarjan_vertex **tarjan_vertices, int count) {
+void freeTarjanVerticesPartial(t_tarjan_vertex **tarjan_vertices, int count) {
     if (tarjan_vertices == NULL) {
         return;
     }
@@ -33,7 +33,7 @@ static void freeTarjanVerticesPartial(t_tarjan_vertex **tarjan_vertices, int cou
  * @param graph The graph to convert.
  * @return Array of Tarjan vertices, or NULL on allocation failure.
  */
-static t_tarjan_vertex** graphToTarjanVertices(t_graph graph) {
+t_tarjan_vertex** graphToTarjanVertices(t_graph graph) {
     int size = graph.size;
     if (size <= 0) {
         fprintf(stderr, "graphToTarjanVertices: invalid graph size\n");
@@ -68,7 +68,7 @@ static t_tarjan_vertex** graphToTarjanVertices(t_graph graph) {
  * @param current_num Pointer to the current discovery number counter.
  * @param stack The DFS stack.
  */
-static void initializeTarjanVertex(t_tarjan_vertex *vertex, int *current_num, t_stack *stack) {
+void initializeTarjanVertex(t_tarjan_vertex *vertex, int *current_num, t_stack *stack) {
     vertex->num = *current_num;
     vertex->num_accessible = *current_num;
     (*current_num)++;
@@ -90,7 +90,7 @@ static void initializeTarjanVertex(t_tarjan_vertex *vertex, int *current_num, t_
  * @param partition The partition being built.
  * @param stack The DFS stack.
  */
-static void processTarjanNeighbor(
+void processTarjanNeighbor(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         t_tarjan_vertex *curr,
@@ -121,7 +121,7 @@ static void processTarjanNeighbor(
  * @param partition The partition being built.
  * @param stack The DFS stack.
  */
-static void visitTarjanNeighbors(
+void visitTarjanNeighbors(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         t_tarjan_vertex *curr,
@@ -157,7 +157,7 @@ static void visitTarjanNeighbors(
  * @param partition The partition to add the new class to.
  * @param stack The DFS stack.
  */
-static void extractStronglyConnectedComponent(
+void extractStronglyConnectedComponent(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         t_tarjan_vertex *curr,
@@ -207,7 +207,7 @@ static void extractStronglyConnectedComponent(
  * @param partition The partition being built.
  * @param stack The DFS stack.
  */
-static void tarjanVisit(
+void tarjanVisit(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         int vertex_id,
