@@ -16,8 +16,6 @@ typedef int (*test_fn)(void);
 /**
  * @brief Represents a registered test entry.
  *
- * Holds the test name, the function pointer, and an optional short comment/description.
- *
  * @param name Human-readable name of the test.
  * @param fn Function pointer to the test function.
  * @param comment Optional short description of the test.
@@ -40,10 +38,9 @@ void add_test(const char *name, test_fn fn, const char *comment);
 /**
  * @brief Execute all registered tests and print results.
  *
- * Each test is executed in registration order. The framework prints the test
- * name, optional comment, then runs the test and prints [PASS] or [FAIL].
- *
  * @return Number of failed tests (0 indicates all tests passed).
+ *
+ * Each test is executed in registration order.
  */
 int run_all_tests(void);
 
