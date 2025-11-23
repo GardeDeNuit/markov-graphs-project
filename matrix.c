@@ -506,7 +506,7 @@ void computeStationaryDistributionsForAllClasses(
 {
     t_class *class = part.classes;
 
-    printf("\n=== Stationary distributions for all classes ===\n");
+    printf("\n=== Stationary distributions for all classes ===\n\n");
 
     while (class != NULL) {
         displayClass(class);

@@ -56,10 +56,13 @@ int main(void) {
 
     printf("\n ===== PART 3 ===== \n\n");
 
-    printf(" Validation 1 : ");
+    printf(" Validation 1 : We want to calculate 𝑀, for which the difference between 𝑀 and 𝑀 is less than 𝜀 = 0.01. \n\n");
     t_matrix matrix;
     createMatrixFromGraph(graph, &matrix);
     dipslayConvergedMatrixPower(matrix, 0.01, 200);
+
+    printf("\n Validation 2 : We want to obtain the stationary distributions for each of the graph’s classes.\n");
+    computeStationaryDistributionsForAllClasses(matrix,*partition,hasse,0.01);
 
     /*
     // Enregistrer les tests du projet puis exécuter tous les tests.
