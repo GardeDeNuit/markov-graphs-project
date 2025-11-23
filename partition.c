@@ -70,6 +70,7 @@ void displayPartition(t_partition *partition){
     t_class *curr = partition->classes;
     while (curr != NULL) {
         displayClass(curr);
+        printf("\n");
         curr = curr->next;
     }
     debugPrint(DEBUG_PARTITION, "displayPartition: done");

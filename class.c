@@ -74,7 +74,7 @@ void displayClass(t_class *class) {
     }
     printf("Class %s: {", class->name);
     displayVertices(class->vertices);
-    printf("}\n");
+    printf("}");
     debugPrint(DEBUG_CLASS, "displayClass: done");
 }
 
