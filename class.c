@@ -12,6 +12,7 @@ t_class* createClass(int class_id) {
     }
     class->id = class_id;
     class->vertices = NULL;
+    class->vertex_number = 0;
     class->next = NULL;
     return class;
 }
@@ -39,6 +40,7 @@ int addVertexToClass(t_class *class, int value) {
     }
     new_vertex->next = class->vertices;
     class->vertices = new_vertex;
+    class->vertex_number++;
     return 1;
 }
 
