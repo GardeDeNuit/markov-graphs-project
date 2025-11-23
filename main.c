@@ -16,8 +16,10 @@ int main(void) {
         return -1;
     }
 
+    printf("\n ===== PART 1 ===== \n");
+
     printf("\n Validation 1 : We want to display the Markov graph/adjacency list of our text file in the console. \n \n");
-    printf(" === Display of a Markov graph === \n \n");
+    printf(" === Display of a Markov graph === \n\n");
     displayGraph(graph);
 
     printf("\n Validation 2 : We want to know whether our graph properly satisfies the characteristics of Markov with the function isMarkovGraph \n \n");
@@ -27,10 +29,17 @@ int main(void) {
     printf("\n Validation 3 : We want to display our Markov graph more clearly on Mermaid. \n");
     exportGraphToMermaidFile(graph, "../results/exemple_valid_step3_mermaid.mmd");
 
+
+    printf("\n ===== PART 2 ===== \n");
+
+    printf("\n Validation 1 : We want to display the distribution of the graph’s classes created using Tarjan’s algorithm. \n");
     t_partition *partition = tarjan(graph);
 
+    printf(" === display of the classes === \n\n");
     displayPartition(partition);
 
+
+    printf("\n Validation 2 ; “Production of a Hasse diagram to display the links between each class. \n\n");
     t_hasse_diagram hasse = createHasseDiagram(graph);
 
     displayHasseDiagram(hasse);
