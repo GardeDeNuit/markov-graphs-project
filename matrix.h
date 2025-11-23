@@ -2,6 +2,9 @@
 #define MATRIX_H
 
 #include "graph.h"
+#include "partition.h"
+#include "graph.h"
+#include "hasse.h"
 
 /**
  * @file matrix.h
@@ -115,5 +118,50 @@ int setMatrixValue(t_matrix *matrix, int row, int col, double value);
  * @return 1 on success, -1 on error.
  */
 int setMatrixData(t_matrix *matrix, double* data, int dataSize);
+
+/**
+ * @brief Extracts a submatrix corresponding to a specific component of a graph partition.
+ *
+ * @param matrix The original adjacency matrix of the graph.
+ * @param part The partition of the graph into strongly connected components.
+ * @param class_id The index of the component to extract.
+ * @return t_matrix The submatrix corresponding to the specified component.
+ */
+t_matrix buildSubMatrix(t_matrix matrix, t_partition part, int class_id);
+
+/**
+ * @brief compute the smallest n such that diffMatrices(M^n, M^(n-1)) < epsilon.
+ *        The resulting matrix M^n is returned through result.
+ *
+ * @param matrix Input square matrix.
+ * @param epsilon Convergence value.
+ * @param result Pointer receiving the converged matrix (M^n).
+ * @param maxIter Maximum iteration limit (example: 2000).
+ * @return int The exponent n where convergence occurs, or -1 if no convergence.
+ */
+int computeConvergedMatrixPower(t_matrix matrix, double epsilon, t_matrix *result, int maxIter);
+
+/**
+ * @brief Display the matrix obtained by computing the converged power of the input matrix.
+ *
+ * @param matrix Input square matrix.
+ * @param epsilon Convergence value.
+ * @param maxIter Maximum iteration limit (example: 2000).
+ */
+void dipslayConvergedMatrixPower(t_matrix matrix, double epsilon, int maxIter);
+
+/**
+ * @brief Compute and display stationary distributions for all classes.
+ *
+ * @param M Full adjacency matrix.
+ * @param part Graph partition.
+ * @param hasse Hasse diagram.
+ * @param epsilon Convergence threshold.
+ */
+void computeStationaryDistributionsForAllClasses(
+        t_matrix M,
+        t_partition part,
+        t_hasse_diagram hasse,
+        double epsilon);
 
 #endif //MATRIX_H
