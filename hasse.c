@@ -217,9 +217,9 @@ t_association_array createAssociationArray(t_graph graph, t_partition partition)
 t_hasse_diagram createHasseDiagram(t_graph g){
     printf("=== Hasse Diagram Creation ===\n");
 
+    printf("Partitioning graph into strongly connected components...\n");
     // Step 1: Compute strongly connected components
     t_partition* partition = tarjan(g);
-    displayPartition(partition);
 
     // Step 2: Create vertex-to-class mapping
     t_association_array association_array = createAssociationArray(g, *partition);
@@ -239,10 +239,7 @@ t_hasse_diagram createHasseDiagram(t_graph g){
     hasse.partition = partition;
     hasse.association_array = association_array;
 
-    printf("\n=== Building Hasse Diagram ===\n");
-    printf("Graph size: %d\n", g.size);
-    printf("Number of classes: %d\n", partition->class_number);
-
+    printf("Building links between classes...\n");
     // Step 4: Build links between different classes
     for (int i = 0; i < g.size; i++) {
         int ci = association_array[i];  // Class of current vertex
