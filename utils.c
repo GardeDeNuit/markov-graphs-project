@@ -4,27 +4,31 @@
 
 char *getID(int i)
 {
-    // translate from 1,2,3, .. ,500+ to A,B,C,..,Z,AA,AB,...
-    static char buffer[10];
-    char temp[10];
+    char temp[16];
     int index = 0;
 
-    i--; // Adjust to 0-based index
+    if (i <= 0) return NULL;
+    i--; /* passage à un index 0-based */
+
     while (i >= 0)
     {
         temp[index++] = 'A' + (i % 26);
         i = (i / 26) - 1;
+        if (index >= (int)(sizeof(temp) - 1)) break; /* sécurité */
     }
 
-    // Reverse the string to get the correct order
+    /* allouer la taille exacte (+1 pour le '\0') */
+    char *res = (char *)malloc(index + 1);
+    if (!res) return NULL;
+
+    /* écrire dans l'ordre correct */
     for (int j = 0; j < index; j++)
-    {
-        buffer[j] = temp[index - j - 1];
-    }
-    buffer[index] = '\0';
+        res[j] = temp[index - j - 1];
+    res[index] = '\0';
 
-    return buffer;
+    return res; /* caller doit faire free() */
 }
+
 
 int validateIntRange(int value, int min, int max, const char *errMsg) {
     if (value < min || value > max) {
