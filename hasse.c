@@ -296,7 +296,7 @@ t_hasse_diagram createHasseDiagram(t_graph g){
 }
 
 void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
-    printf("\n=== Displaying Detailed Characteristics ===\n");
+    printf("\n=== Displaying Graph Detailed Characteristics ===\n");
 
     t_partition *part = hasse.partition;
     int nb_classes = part->class_number;
