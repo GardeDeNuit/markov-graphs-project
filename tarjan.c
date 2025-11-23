@@ -1,61 +1,95 @@
 #include "tarjan.h"
-#include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils.h"
+#include "tarjan_vertex.h"
 
-void freeTarjanVerticesPartial(t_tarjan_vertex **tarjan_vertices, int count) {
-    debugPrint(DEBUG_TARJAN, "freeTarjanVerticesPartial: start");
+/**
+ * @brief Frees a partially allocated array of Tarjan vertices.
+ *
+ * Used for cleanup when allocation fails midway through vertex creation.
+ *
+ * @param tarjan_vertices Array of Tarjan vertices to free.
+ * @param count Number of vertices that were successfully allocated.
+ */
+static void freeTarjanVerticesPartial(t_tarjan_vertex **tarjan_vertices, int count) {
     if (tarjan_vertices == NULL) {
-        debugPrint(DEBUG_TARJAN, "freeTarjanVerticesPartial: array is NULL");
         return;
     }
     for (int i = 0; i < count; ++i) {
         if (tarjan_vertices[i] != NULL) {
-            debugPrint(DEBUG_TARJAN, "freeTarjanVerticesPartial: freeing entry");
             freeTarjanVertex(tarjan_vertices[i]);
         }
     }
     free(tarjan_vertices);
-    debugPrint(DEBUG_TARJAN, "freeTarjanVerticesPartial: done");
 }
 
-t_tarjan_vertex** graphToTarjanVertices(t_graph graph) {
-    debugPrint(DEBUG_TARJAN, "graphToTarjanVertices: start");
+/**
+ * @brief Converts a graph into an array of Tarjan vertices.
+ *
+ * Creates one Tarjan vertex for each vertex in the graph, all initialized
+ * as unvisited and not on the stack.
+ *
+ * @param graph The graph to convert.
+ * @return Array of Tarjan vertices, or NULL on allocation failure.
+ */
+static t_tarjan_vertex** graphToTarjanVertices(t_graph graph) {
     int size = graph.size;
     if (size <= 0) {
-        debugPrint(DEBUG_TARJAN, "graphToTarjanVertices: invalid graph size");
         fprintf(stderr, "graphToTarjanVertices: invalid graph size\n");
         return NULL;
     }
+
     t_tarjan_vertex **tarjan_vertices = calloc(size, sizeof(t_tarjan_vertex*));
     if (tarjan_vertices == NULL) {
-        debugPrint(DEBUG_TARJAN, "graphToTarjanVertices: allocation failed");
         perror("graphToTarjanVertices: allocation failed");
         return NULL;
     }
+
     for (int i = 0; i < size; i++) {
         int vertex_id = i + 1;
         tarjan_vertices[i] = createTarjanVertex(vertex_id, UNVISITED, UNVISITED, FALSE);
         if (tarjan_vertices[i] == NULL) {
-            debugPrint(DEBUG_TARJAN, "graphToTarjanVertices: vertex creation failed");
             perror("graphToTarjanVertices: vertex creation failed");
             freeTarjanVerticesPartial(tarjan_vertices, i);
             return NULL;
         }
     }
-    debugPrint(DEBUG_TARJAN, "graphToTarjanVertices: success");
+
     return tarjan_vertices;
 }
 
+/**
+ * @brief Initializes a Tarjan vertex during the first visit.
+ *
+ * Sets the vertex's discovery number and low-link value, then pushes it onto the stack.
+ *
+ * @param vertex The vertex to initialize.
+ * @param current_num Pointer to the current discovery number counter.
+ * @param stack The DFS stack.
+ */
 static void initializeTarjanVertex(t_tarjan_vertex *vertex, int *current_num, t_stack *stack) {
     vertex->num = *current_num;
     vertex->num_accessible = *current_num;
     (*current_num)++;
     pushStack(stack, vertex->id);
     vertex->in_pile = TRUE;
-    debugPrint(DEBUG_TARJAN, "tarjanVisit: vertex pushed to stack");
 }
 
+/**
+ * @brief Processes a single neighbor during Tarjan's DFS traversal.
+ *
+ * If the neighbor is unvisited, recursively visits it.
+ * If the neighbor is on the stack, updates the low-link value.
+ *
+ * @param graph The graph being traversed.
+ * @param tarjan_vertices Array of all Tarjan vertices.
+ * @param curr The current vertex being processed.
+ * @param neighbor_id ID of the neighbor to process.
+ * @param current_num Pointer to the current discovery number.
+ * @param partition The partition being built.
+ * @param stack The DFS stack.
+ */
 static void processTarjanNeighbor(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
@@ -66,16 +100,27 @@ static void processTarjanNeighbor(
         t_stack *stack) {
     t_tarjan_vertex *neighbor_tv = tarjan_vertices[neighbor_id - 1];
 
-    if (DEBUG_TARJAN == TRUE) printf("tarjanVisit: inspecting neighbor %d\n", neighbor_id);
-
     if (neighbor_tv->num == UNVISITED) {
+        // Recursively visit unvisited neighbors
         tarjanVisit(graph, tarjan_vertices, neighbor_id, current_num, partition, stack);
+        // Update low-link value based on neighbor's low-link
         curr->num_accessible = minInt(curr->num_accessible, neighbor_tv->num_accessible);
     } else if (neighbor_tv->in_pile == TRUE) {
+        // If neighbor is on stack, it's part of the current SCC
         curr->num_accessible = minInt(curr->num_accessible, neighbor_tv->num);
     }
 }
 
+/**
+ * @brief Visits all neighbors of the current vertex in the DFS traversal.
+ *
+ * @param graph The graph being traversed.
+ * @param tarjan_vertices Array of all Tarjan vertices.
+ * @param curr The current vertex being processed.
+ * @param current_num Pointer to the current discovery number.
+ * @param partition The partition being built.
+ * @param stack The DFS stack.
+ */
 static void visitTarjanNeighbors(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
@@ -99,21 +144,33 @@ static void visitTarjanNeighbors(
     }
 }
 
+/**
+ * @brief Extracts a strongly connected component from the stack.
+ *
+ * When a root vertex is found (num_accessible == num), all vertices on the stack
+ * up to and including this vertex form one SCC. This function pops them off
+ * and creates a new class in the partition.
+ *
+ * @param graph The graph being traversed.
+ * @param tarjan_vertices Array of all Tarjan vertices.
+ * @param curr The root vertex of the SCC.
+ * @param partition The partition to add the new class to.
+ * @param stack The DFS stack.
+ */
 static void extractStronglyConnectedComponent(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         t_tarjan_vertex *curr,
         t_partition *partition,
         t_stack *stack) {
-    debugPrint(DEBUG_TARJAN, "tarjanVisit: root of SCC detected");
     int class_has_members = FALSE;
 
-    // Creation d'une nouvelle classe pour la SCC
-    // On commence par générer un nom unique
+    // Create a new class for this SCC
     int new_class_id = generateClassId(*partition);
     t_class *new_class = createClass(new_class_id);
     if (new_class == NULL) return;
 
+    // Pop vertices from stack until we reach the root vertex
     int w_id;
     do {
         if (stack->top == NULL) break;
@@ -124,90 +181,125 @@ static void extractStronglyConnectedComponent(
         w_tv->in_pile = FALSE;
         addVertexToClass(new_class, w_id);
         class_has_members = TRUE;
-        if (DEBUG_TARJAN == TRUE) printf("tarjanVisit: vertex %d added to SCC\n", w_id);
     } while (w_id != curr->id);
 
+    // Add the class to the partition if it has members
     if (class_has_members) {
-        debugPrint(DEBUG_TARJAN, "tarjanVisit: SCC completed");
         addClassToPartition(partition, new_class);
     } else {
-        debugPrint(DEBUG_TARJAN, "tarjanVisit: SCC empty, freeing");
         freeClass(new_class);
     }
 }
 
-void tarjanVisit(
+/**
+ * @brief Performs a DFS visit on a vertex using Tarjan's algorithm.
+ *
+ * This is the core recursive function of Tarjan's algorithm. It:
+ * 1. Marks the vertex as visited and pushes it onto the stack
+ * 2. Recursively visits all unvisited neighbors
+ * 3. Updates low-link values based on neighbors
+ * 4. Extracts an SCC if this vertex is a root
+ *
+ * @param graph The graph being traversed.
+ * @param tarjan_vertices Array of all Tarjan vertices.
+ * @param vertex_id ID of the vertex to visit.
+ * @param current_num Pointer to the current discovery number.
+ * @param partition The partition being built.
+ * @param stack The DFS stack.
+ */
+static void tarjanVisit(
         t_graph *graph,
         t_tarjan_vertex **tarjan_vertices,
         int vertex_id,
         int *current_num,
         t_partition *partition,
         t_stack *stack) {
-    debugPrint(DEBUG_TARJAN, "tarjanVisit: start");
     if (graph == NULL || tarjan_vertices == NULL || current_num == NULL ||
         partition == NULL || stack == NULL) {
-        debugPrint(DEBUG_TARJAN, "tarjanVisit: invalid arguments");
         fprintf(stderr, "tarjanVisit: invalid arguments\n");
         return;
     }
     if (vertex_id < 1 || vertex_id > graph->size) {
-        debugPrint(DEBUG_TARJAN, "tarjanVisit: vertex_id out of bounds");
         fprintf(stderr, "tarjanVisit: vertex_id out of bounds\n");
         return;
     }
 
     t_tarjan_vertex *curr = tarjan_vertices[vertex_id - 1];
+
+    // Initialize this vertex (first visit)
     initializeTarjanVertex(curr, current_num, stack);
 
-    if (DEBUG_TARJAN == TRUE) printf("[DEBUG] tarjanVisit: visiting vertex %d\n", curr->id);
+    // Visit all neighbors
     visitTarjanNeighbors(graph, tarjan_vertices, curr, current_num, partition, stack);
 
+    // Check if this vertex is the root of an SCC
     if (curr->num_accessible == curr->num) {
         extractStronglyConnectedComponent(graph, tarjan_vertices, curr, partition, stack);
     }
 }
 
 t_partition *tarjan(t_graph graph) {
-    debugPrint(DEBUG_TARJAN, "tarjan: start");
+    printf("\n=== Computing Strongly Connected Components (Tarjan's Algorithm) ===\n");
 
+    // Step 1: Create empty partition
+    printf("Step 1: Creating partition structure...\n");
     t_partition *partition = createPartition();
     if (partition == NULL) {
-        debugPrint(DEBUG_TARJAN, "tarjan: partition allocation failed");
+        fprintf(stderr, "Error: Failed to create partition\n");
         return NULL;
     }
 
     if (graph.size <= 0) {
-        debugPrint(DEBUG_TARJAN, "tarjan: empty graph");
+        printf("Warning: Graph is empty\n");
         return partition;
     }
 
+    printf("Graph size: %d vertices\n", graph.size);
+
+    // Step 2: Convert graph to Tarjan vertices
+    printf("Step 2: Initializing Tarjan data structures...\n");
     t_tarjan_vertex **tarjan_vertices = graphToTarjanVertices(graph);
     if (tarjan_vertices == NULL) {
-        debugPrint(DEBUG_TARJAN, "tarjan: tarjan vertices creation failed");
+        fprintf(stderr, "Error: Failed to create Tarjan vertices\n");
         freePartition(partition);
         return NULL;
     }
 
+    // Step 3: Create stack for DFS
     t_stack *stack = createStack();
     if (stack == NULL) {
-        debugPrint(DEBUG_TARJAN, "tarjan: stack creation failed");
+        fprintf(stderr, "Error: Failed to create stack\n");
         freeTarjanVerticesPartial(tarjan_vertices, graph.size);
         freePartition(partition);
         return NULL;
     }
 
+    // Step 4: Run Tarjan's algorithm
+    printf("Step 3: Running depth-first search to identify SCCs...\n");
     int current_num = 0;
+    int components_found = 0;
+
     for (int i = 0; i < graph.size; i++) {
         if (tarjan_vertices[i] == NULL) continue;
         if (tarjan_vertices[i]->num == UNVISITED) {
-            if (DEBUG_TARJAN == TRUE) printf("[DEBUG] tarjan: launching visit from %d\n", tarjan_vertices[i]->id);
+            printf("  Starting DFS from vertex %d\n", tarjan_vertices[i]->id);
+            int previous_class_count = partition->class_number;
             tarjanVisit(&graph, tarjan_vertices, tarjan_vertices[i]->id, &current_num, partition, stack);
+
+            // Check if new components were found
+            if (partition->class_number > previous_class_count) {
+                components_found += (partition->class_number - previous_class_count);
+            }
         }
     }
 
+    // Step 5: Clean up
     freeTarjanVerticesPartial(tarjan_vertices, graph.size);
     freeStack(stack);
 
-    debugPrint(DEBUG_TARJAN, "tarjan: completed");
+    printf("Step 4: Complete!\n");
+    printf("Found %d strongly connected component(s)\n", partition->class_number);
+    printf("=== Tarjan's Algorithm Complete ===\n\n");
+
     return partition;
 }
