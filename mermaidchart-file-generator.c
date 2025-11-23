@@ -1,4 +1,5 @@
 #include "mermaidchart-file-generator.h"
+#include "hasse.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -187,7 +188,7 @@ static void freeClassLabels(char **class_labels, int num_classes)
 /* Public functions ==================================================== */
 
 int exportGraphToMermaidFile(t_graph graph, const char* path) {
-    printf("\n=== Exporting Graph to Mermaid ===\n");
+    printf("\n=== Exporting Graph to Mermaid ===\n\n");
     printf("Path: %s\n", path);
     printf("Number of vertices: %d\n", graph.size);
 
