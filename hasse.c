@@ -9,8 +9,6 @@
  * @brief Make a Hasse Diagram
  */
 
-
-
 /* private functions =================================================== */
 
 /**
@@ -19,7 +17,7 @@
  * @return Nothing.
  */
 
-static void removeTransitiveLinks(t_link_array* p_link_array)
+void removeTransitiveLinks(t_link_array* p_link_array)
 {
     int i = 0;
     while (i < p_link_array->logical_size)
@@ -70,7 +68,7 @@ static void removeTransitiveLinks(t_link_array* p_link_array)
  * @param dest Destination node.
  * @return 1 if the link exists, 0 otherwise.
  */
-static int linkExists(t_link_array link_array, int src, int dest)
+int linkExists(t_link_array link_array, int src, int dest)
 {
     for (int i = 0; i < link_array.logical_size; i++) {
         if (link_array.links[i].src_id == src && link_array.links[i].dest_id == dest) {
@@ -87,11 +85,14 @@ static int linkExists(t_link_array link_array, int src, int dest)
  * @param dest Destination node.
  * @return Nothing.
  */
-static int addLink(t_link_array *link_array, int src, int dest) {
-    if (linkExists(*link_array, src, dest)) return 0;
+int addLink(t_link_array *link_array, int src, int dest) {
+    if (linkExists(*link_array, src, dest)) {
+        printf("Link already exists: %d -> %d\n", src, dest);
+        return 0;
+    }
 
     if (link_array->logical_size >= link_array->physical_size) {
-      	// Augmenter la taille physique du tableau
+        // Augmenter la taille physique du tableau
         link_array->physical_size *= 2;
         t_link* new_links = realloc(link_array->links, link_array->physical_size * sizeof(t_link));
         if (new_links == NULL) {
@@ -99,11 +100,14 @@ static int addLink(t_link_array *link_array, int src, int dest) {
             return -1;
         }
         link_array->links = new_links;
+        printf("Link array resized to %d\n", link_array->physical_size);
     }
 
     link_array->links[link_array->logical_size].src_id = src;
     link_array->links[link_array->logical_size].dest_id = dest;
     link_array->logical_size++;
+
+    printf("New link added: %d -> %d (total links: %d)\n", src, dest, link_array->logical_size);
     return 1;
 }
 
@@ -112,7 +116,7 @@ static int addLink(t_link_array *link_array, int src, int dest) {
  * @param hasse The Hasse diagram to display.
  * @return Nothing.
  */
-static void displayHasseDiagram(t_hasse_diagram hasse) {
+void displayHasseDiagram(t_hasse_diagram hasse) {
     if (hasse.logical_size == 0) {
         printf("Aucun lien entre les classes.\n");
         return;
@@ -231,18 +235,31 @@ t_association_array createAssociationArray(t_graph graph, t_partition partition)
 }
 
 t_hasse_diagram createHasseDiagram(t_graph g){
+    printf("=== Hasse Diagram Creation ===\n\n");
     t_partition* partition = tarjan(g);
-    t_association_array association_array = createAssociationArray(&g, partition);
+    displayPartition(partition);
+    t_association_array association_array = createAssociationArray(g, *partition);
+
     t_hasse_diagram hasse;
     hasse.logical_size = 0;
     hasse.physical_size = g.size;
     hasse.links = malloc(hasse.physical_size * sizeof(t_link));
+    if (hasse.links == NULL) {
+        fprintf(stderr, "createHasseDiagram: malloc failed for links array\n");
+        hasse.physical_size = 0;
+        hasse.partition = partition;
+        hasse.association_array = association_array;
+        return hasse;
+    }
     hasse.partition = partition;
     hasse.association_array = association_array;
 
+    printf("\n=== Building Hasse Diagram ===\n");
+    printf("Graph size: %d\n", g.size);
+    printf("Number of classes: %d\n", partition->class_number);
+
     for (int i = 0; i < g.size; i++) {
         int ci = association_array[i];
-
         t_cell *cur = g.values[i].head;
 
         while (cur != NULL) {
@@ -252,11 +269,14 @@ t_hasse_diagram createHasseDiagram(t_graph g){
             if (ci != cj) {
                 addLink(&hasse, ci, cj);
             }
-
             cur = cur->next;
         }
     }
 
+    printf("Before transitive reduction: %d links\n", hasse.logical_size);
     removeTransitiveLinks(&hasse);
+    printf("After transitive reduction: %d links\n", hasse.logical_size);
+    printf("=== Hasse Diagram Complete ===\n\n");
+
     return hasse;
 }
