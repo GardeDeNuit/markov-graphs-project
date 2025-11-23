@@ -159,18 +159,26 @@ void displayHasseDiagram(t_hasse_diagram hasse) {
  * @return Array of class types (0 = persistent, 1 = transient).
  */
 
-t_class_type_array createClassTypeArray(t_link_array link_array) {
-    t_class_type_array type_array = calloc(link_array.logical_size, sizeof(int));
-
-    for (int i = 0; i < link_array.logical_size; i++) {
-        int dept = link_array.links[i].src_id;
-        int dest = link_array.links[i].dest_id;
-
-        if (dept != dest) {
-            type_array[dest] = 1;
-        }
-
+t_class_type_array createClassTypeArray(t_hasse_diagram hasse) {
+    t_class_type_array type_array = calloc(hasse.logical_size, sizeof(int));
+    if (!type_array) {
+        perror("Erreur allocation type_array");
+        exit(EXIT_FAILURE);
     }
+
+    for (int i = 0; i < hasse.logical_size; i++) {
+        type_array[i] = 0;  // 0 = persistante par défaut
+
+        for (int j = 0; j < hasse.logical_size; j++) {
+            if (hasse.links[j].src_id == i &&
+                hasse.links[j].dest_id != i) {
+
+                type_array[i] = 1; // 1 = transitoire
+                break;
+            }
+        }
+    }
+
     return type_array;
 }
 
@@ -180,9 +188,9 @@ void freeClassTypeArray(t_class_type_array type_array) {
 
 int isPersistantClass(t_hasse_diagram hasse, int class_id) {
     t_class_type_array type_array = createClassTypeArray(hasse);
-    int is_persistant = type_array[class_id];
-    freeClassTypeArray(type_array);
-    return is_persistant;
+    int persistante = (type_array[class_id] == 0);
+    free(type_array);
+    return persistante;
 }
 
 /**
@@ -193,19 +201,23 @@ int isPersistantClass(t_hasse_diagram hasse, int class_id) {
  * @return 1 if absorbing, 0 otherwise.
  */
 int isAbsorbingState(t_hasse_diagram hasse, int state_id, int graph_size) {
-    int state_class = hasse.association_array[state_id - 1];
-    if (isPersistantClass(hasse, state_class)) {
-        int class_occurrence = 0;
-        for (int i = 0; i < graph_size; i++) {
-            if (hasse.association_array[i] == state_class) {
-                class_occurrence++;
-            }
-            if (class_occurrence > 1) {
-                return 0;
-            }
+    int class_id = hasse.association_array[state_id - 1];
+
+    // si la classe est transitoire → pas absorbante
+    if (!isPersistantClass(hasse, class_id))
+        return 0;
+
+    // on compte le nombre de sommets de la classe
+    int count = 0;
+    for (int i = 0; i < graph_size; i++) {
+        if (hasse.association_array[i] == class_id) {
+            count++;
+            if (count > 1)
+                return 0; // plus d'un état → pas absorbant
         }
     }
-    return 0;
+
+    return 1;  // un seul état et classe persistante → absorbant
 }
 
 /**
@@ -215,12 +227,13 @@ int isAbsorbingState(t_hasse_diagram hasse, int state_id, int graph_size) {
  * @return 1 if irreducible, 0 otherwise.
  */
 
-int isIrreductible(t_hasse_diagram hasse){
+int isIrreductible(t_hasse_diagram hasse) {
     return hasse.logical_size == 1;
 }
 
 t_association_array createAssociationArray(t_graph graph, t_partition partition) {
     t_association_array array = calloc(graph.size, sizeof(int));
+
     t_class *curr_class = partition.classes;
     while (curr_class != NULL) {
         t_vertex *curr_vertex = curr_class->vertices;
@@ -231,6 +244,7 @@ t_association_array createAssociationArray(t_graph graph, t_partition partition)
         }
         curr_class = curr_class->next;
     }
+
     return array;
 }
 
@@ -279,4 +293,94 @@ t_hasse_diagram createHasseDiagram(t_graph g){
     printf("=== Hasse Diagram Complete ===\n\n");
 
     return hasse;
+}
+
+void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size) {
+    printf("\n=== Displaying Detailed Characteristics ===\n");
+
+    t_partition *part = hasse.partition;
+    int nb_classes = part->class_number;
+
+    // -------------------------
+    // Count transient and persistent classes
+    // -------------------------
+    int transient_count = 0, persistent_count = 0;
+    for (int i = 0; i < nb_classes; i++) {
+        if (isPersistantClass(hasse, i))
+            persistent_count++;
+        else
+            transient_count++;
+    }
+
+    // -------------------------
+    // Detect absorbing states
+    // -------------------------
+    int absorbing_states[graph_size];
+    int absorbing_count = 0;
+
+    for (int s = 0; s < graph_size; s++) {
+        if (isAbsorbingState(hasse, s + 1, graph_size)) {
+            absorbing_states[absorbing_count++] = s + 1;
+        }
+    }
+
+    // -------------------------
+    // Print summary
+    // -------------------------
+    printf("   Summary:\n");
+    printf("     - Transient classes   : %d\n", transient_count);
+    printf("     - Persistent classes  : %d\n", persistent_count);
+    printf("     - Absorbing states    : %d", absorbing_count);
+
+    if (absorbing_count > 0) {
+        printf(" (");
+        for (int i = 0; i < absorbing_count; i++) {
+            printf("%d", absorbing_states[i]);
+            if (i < absorbing_count - 1) printf(", ");
+        }
+        printf(")");
+    }
+    printf("\n\n");
+
+    // -------------------------
+    // Display details of each class
+    // -------------------------
+    printf("   Detailed class information:\n");
+
+    t_class *classe = part->classes;
+    while (classe != NULL) {
+        int id = classe->id;
+
+        // Print class vertices
+        printf("  Class C%d : {", id);
+        t_vertex *v = classe->vertices;
+        while (v != NULL) {
+            printf("%d", v->value);
+            if (v->next != NULL) printf(", ");
+            v = v->next;
+        }
+        printf("}\n");
+
+        // Print class type
+        printf("     Type : %s\n", isPersistantClass(hasse, id) ? "Persistent" : "Transient");
+
+        // Check if class contains a single absorbing state
+        if (classe->vertices != NULL && classe->vertices->next == NULL) {
+            int state_id = classe->vertices->value;
+            if (isAbsorbingState(hasse, state_id, graph_size))
+                printf("     Absorbing state : YES (State %d)\n", state_id);
+            else
+                printf("     Absorbing state : NO\n");
+        }
+
+        classe = classe->next;
+    }
+
+    // -------------------------
+    // Graph irreducibility
+    // -------------------------
+    printf("\n   Graph is %sirreducible\n",
+           isIrreductible(hasse) ? "" : "NOT ");
+
+    printf("=== End of Detailed Characteristics ===\n");
 }

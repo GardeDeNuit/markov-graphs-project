@@ -48,4 +48,5 @@ t_hasse_diagram createHasseDiagram(t_graph g);
 
 void displayGraphCharacteristics(t_hasse_diagram hasse, t_graph graph);
 
+void displayDetailedCharacteristics(t_hasse_diagram hasse, int graph_size);
 #endif

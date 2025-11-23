@@ -10,22 +10,23 @@
 
 int main(void) {
 
-    t_graph graph = importGraphFromFile("../test_bench/exemple3.txt");
+    t_graph graph = importGraphFromFile("../test_bench/exemple2.txt");
     if (graph.size == 0) {
         fprintf(stderr, "Failed to import graph from file.\n");
         return -1;
     }
     displayGraph(graph);
-    exportGraphToMermaidFile(graph, "../results/exemple3_mermaid.mmd");
+    exportGraphToMermaidFile(graph, "../results/exemple2_mermaid.mmd");
     t_partition *partition = tarjan(graph);
     displayPartition(partition);
     t_hasse_diagram hasse = createHasseDiagram(graph);
     displayHasseDiagram(hasse);
-    exportHasseDiagramToMermaidFile(hasse, "../results/exemple3_hasse_mermaid.mmd");
-    printf("Irreductible ? : %d\n", isIrreductible(hasse));
+    exportHasseDiagramToMermaidFile(hasse, "../results/exemple2_hasse_mermaid.mmd");
+    /*printf("Irreductible ? : %d\n", isIrreductible(hasse));
     printf("Persistant A ? : %d\n", isPersistantClass(hasse, 1));
     printf("Persistant C ? : %d\n", isPersistantClass(hasse, 3));
-    printf("Absorbing ? : %d\n", isAbsorbingState(hasse, 4, graph.size));
+    printf("Absorbing ? : %d\n", isAbsorbingState(hasse, 4, graph.size));*/
+    displayDetailedCharacteristics(hasse,graph.size);
 
 
 
