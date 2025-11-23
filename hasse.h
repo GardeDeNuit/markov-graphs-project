@@ -1,37 +1,40 @@
 #ifndef __HASSE_H__
 #define __HASSE_H__
 
-struct s_link {
-    int dept_nb;
-    int dest_nb;
-};
+#include "partition.h"
+#include "graph.h"
 
-typedef struct s_link t_link;
+typedef struct s_link {
+    int src_id;
+    int dest_id;
+} t_link;
 
-struct s_link_array {
-    t_link * links;
-    int log_size;
-    int max_size;
-};
+typedef int* t_class_type_array;
+typedef int* t_association_array;
 
-typedef struct s_link_array t_link_array;
+typedef struct s_link_array {
+    t_link* links;
+    t_partition *partition;
+    t_association_array association_array;
+    int logical_size;
+    int physical_size;
+} t_link_array;
 
+typedef t_link_array t_hasse_diagram;
 
-void addLink(t_link_array *link_array, int dept, int dest);
-int createClassLinks(int num_vertices,int **adj_list,int *adj_size,t_link_array *class_links);
-void removeTransitiveLinks(t_link_array *p_link_array);
-int *createArrayClass(int nb_sommets, t_link_array *arr);
+/* private functions =================================================== */
 
+static void removeTransitiveLinks(t_link_array* link_array);
+static int linkExists(t_link_array link_array, int dept, int dest);
+static int addLink(t_link_array *link_array, int dept, int dest);
+static char** buildName(t_partition *partition, int num_classes);
+static void displayHasseDiagram(t_hasse_diagram hasse);
+t_class_type_array createClassTypeArray(t_link_array link_array);
+int isAbsorbingState(int* class_sizes,int class_nb,t_class_type_array type_array);
+int isIrreductible(t_class_type_array type_array,t_link_array link_array);
 
-int *ClassType(int*,int,t_link_array);
-int isAbsorbingState(int*,int,int*);
-int isIrreductible(int*,int);
-/**
- * @brief Creates a link array from the given partition and graph.
- *
- * @param part The partition of the graph.
- * @param graph The adjacency list representation of the graph.
- * @return The created link array.
- */
+t_association_array createAssociationArray(t_graph *graph, t_partition *partition);
+
+void addLinkToHasseDiagram(t_link_array *hasse, t_graph g, int *class_array);
 
 #endif

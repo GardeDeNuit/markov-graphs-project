@@ -63,7 +63,7 @@ void displayClass(t_class *class) {
     }
     printf("Class %d: {", class->id);
     displayVertices(class->vertices);
-    printf("}\n");
+    printf("}");
 }
 
 void freeVertices(t_vertex *vertex) {

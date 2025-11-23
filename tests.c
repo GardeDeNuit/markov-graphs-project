@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "tarjan.h"
 #include "tarjan_vertex.h"
+#include "hasse.h"
 
 static test_entry g_tests[256];
 static int g_test_count = 0;
@@ -553,7 +554,7 @@ int test_tarjan_single_vertex_no_edges() {
 }
 
 int test_tarjan_imported_graph_example3() {
-    t_graph graph = importGraphFromFile("..\\data\\exemple3.txt");
+    t_graph graph = importGraphFromFile("../data/exemple3.txt");
     if (graph.size == 0) return 1;
     t_partition *partition = tarjan(graph);
     int result = (partition != NULL && partition->classes != NULL) ? 0 : 1;
@@ -564,7 +565,7 @@ int test_tarjan_imported_graph_example3() {
     return result;
 }
 
-void register_project_tests(void) {
+void register_project_tests(void){
     // Tests des listes
     add_test("list_create_empty", test_list_create_empty, "Création d'une liste vide");
     add_test("list_add_cell", test_list_add_cell, "Ajout d'un élément à une liste");
