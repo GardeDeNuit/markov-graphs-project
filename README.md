@@ -60,6 +60,4 @@ D -->|1.00|A
 ```
 
 ## Auteur
-LEMONNIER Louis
-LEROY Mathias
-SPINDLER Mattéo
+Louis, Mathias, Mattéo - Groupe 1.5
