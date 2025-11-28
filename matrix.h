@@ -130,6 +130,21 @@ int setMatrixData(t_matrix *matrix, double* data, int dataSize);
 t_matrix buildSubMatrix(t_matrix matrix, t_partition part, int class_id);
 
 /**
+ * @brief Extracts a submatrix from specified vertices.
+ *
+ * This function creates a submatrix by selecting only the rows and columns
+ * corresponding to the vertices specified in the vertices array.
+ * The order of vertices in the array determines the order in the submatrix.
+ *
+ * @param matrix The original adjacency matrix of the graph.
+ * @param vertices Array of vertex IDs (1-based indexing).
+ * @param vertexCount Number of vertices in the array.
+ * @return t_matrix The submatrix corresponding to the specified vertices.
+ *         Returns an empty matrix on error.
+ */
+t_matrix buildSubMatrixFromVertices(t_matrix matrix, int* vertices, int vertexCount);
+
+/**
  * @brief compute the smallest n such that diffMatrices(M^n, M^(n-1)) < epsilon.
  *        The resulting matrix M^n is returned through result.
  *
@@ -163,5 +178,48 @@ void computeStationaryDistributionsForAllClasses(
         t_partition part,
         t_hasse_diagram hasse,
         double epsilon);
+
+/**
+ * @brief Compute the probability distribution of states after n steps.
+ *
+ * This function takes an initial probability distribution (row vector) and
+ * computes the distribution after n steps by multiplying it with the transition
+ * matrix raised to the power n: result = initialDistribution * M^n
+ *
+ * @param transitionMatrix The transition matrix of the Markov chain.
+ * @param initialDistribution Initial probability distribution (1 x size row vector).
+ * @param n Number of steps (must be >= 0).
+ * @param result Pointer receiving the resulting distribution (1 x size row vector).
+ * @return 1 on success, -1 on error.
+ */
+int computeDistributionAfterNSteps(t_matrix transitionMatrix,
+                                    t_matrix initialDistribution,
+                                    int n,
+                                    t_matrix *result);
+
+/**
+ * @brief Display the probability distribution after n steps starting from an initial distribution.
+ *
+ * @param transitionMatrix The transition matrix of the Markov chain.
+ * @param initialDistribution Initial probability distribution (1 x size row vector).
+ * @param n Number of steps.
+ */
+void displayDistributionAfterNSteps(t_matrix transitionMatrix,
+                                     t_matrix initialDistribution,
+                                     int n);
+
+/**
+ * @brief Extract the probability distribution associated with a given state.
+ *
+ * This function extracts a specific row from a matrix, representing the
+ * probability distribution for transitioning from a given state to all other states.
+ * The state index is 1-based (matching vertex IDs in the graph).
+ *
+ * @param matrix The transition matrix (or any matrix to extract from).
+ * @param stateId The state identifier (1-based, e.g., vertex 1, 2, 3...).
+ * @return t_matrix A 1 x N row vector containing the distribution for that state.
+ *         Returns an empty matrix on error.
+ */
+t_matrix getDistributionForState(t_matrix matrix, int stateId);
 
 #endif //MATRIX_H

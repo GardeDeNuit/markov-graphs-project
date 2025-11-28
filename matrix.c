@@ -434,6 +434,53 @@ t_matrix buildSubMatrix(t_matrix matrix, t_partition part, int class_id) {
     return sub_m;
 }
 
+t_matrix buildSubMatrixFromVertices(t_matrix matrix, int* vertices, int vertexCount) {
+    // Validation des paramètres
+    if (!isValidMatrix(matrix)) {
+        fprintf(stderr, "buildSubMatrixFromVertices: invalid input matrix\n");
+        return createEmptyMatrix();
+    }
+
+    if (vertices == NULL) {
+        fprintf(stderr, "buildSubMatrixFromVertices: NULL vertices array\n");
+        return createEmptyMatrix();
+    }
+
+    if (vertexCount <= 0) {
+        fprintf(stderr, "buildSubMatrixFromVertices: invalid vertex count (%d)\n", vertexCount);
+        return createEmptyMatrix();
+    }
+
+    // Vérification que tous les indices de sommets sont valides (1-based)
+    for (int i = 0; i < vertexCount; i++) {
+        if (vertices[i] < 1 || vertices[i] > matrix.rows) {
+            fprintf(stderr, "buildSubMatrixFromVertices: vertex ID %d out of bounds (valid range: 1-%d)\n",
+                    vertices[i], matrix.rows);
+            return createEmptyMatrix();
+        }
+    }
+
+    // Création de la sous-matrice carrée
+    t_matrix sub_m = createMatrix(vertexCount, vertexCount);
+    if (!isValidMatrix(sub_m)) {
+        fprintf(stderr, "buildSubMatrixFromVertices: failed to create submatrix\n");
+        return createEmptyMatrix();
+    }
+
+    // Remplissage de la sous-matrice
+    // Pour chaque paire (i,j) de sommets dans le tableau vertices,
+    // on copie la valeur de la matrice originale
+    for (int i = 0; i < vertexCount; i++) {
+        int row_index = vertices[i] - 1; // Conversion 1-based vers 0-based
+        for (int j = 0; j < vertexCount; j++) {
+            int col_index = vertices[j] - 1; // Conversion 1-based vers 0-based
+            sub_m.data[i][j] = matrix.data[row_index][col_index];
+        }
+    }
+
+    return sub_m;
+}
+
 int computeConvergedMatrixPower(t_matrix matrix, double epsilon, t_matrix *limitMatrix, int maxIter) {
     if (!isValidMatrix(matrix) || matrix.rows != matrix.cols) {
         fprintf(stderr, "computeConvergedMatrixPower: invalid input matrix\n");
@@ -517,4 +564,125 @@ void computeStationaryDistributionsForAllClasses(
 
         class = class->next;
     }
+}
+
+int computeDistributionAfterNSteps(t_matrix transitionMatrix,
+                                    t_matrix initialDistribution,
+                                    int n,
+                                    t_matrix *result) {
+    // Vérification des paramètres
+    if (!isValidMatrix(transitionMatrix)) {
+        fprintf(stderr, "computeDistributionAfterNSteps: invalid transition matrix\n");
+        return -1;
+    }
+
+    if (!isValidMatrix(initialDistribution)) {
+        fprintf(stderr, "computeDistributionAfterNSteps: invalid initial distribution\n");
+        return -1;
+    }
+
+    if (result == NULL) {
+        fprintf(stderr, "computeDistributionAfterNSteps: NULL result pointer\n");
+        return -1;
+    }
+
+    if (n < 0) {
+        fprintf(stderr, "computeDistributionAfterNSteps: n must be non-negative (given: %d)\n", n);
+        return -1;
+    }
+
+    // Vérification que la matrice de transition est carrée
+    if (transitionMatrix.rows != transitionMatrix.cols) {
+        fprintf(stderr, "computeDistributionAfterNSteps: transition matrix must be square\n");
+        return -1;
+    }
+
+    // Vérification que la distribution initiale est un vecteur ligne
+    if (initialDistribution.rows != 1) {
+        fprintf(stderr, "computeDistributionAfterNSteps: initial distribution must be a row vector (1xN)\n");
+        return -1;
+    }
+
+    // Vérification de la compatibilité des dimensions
+    if (initialDistribution.cols != transitionMatrix.rows) {
+        fprintf(stderr, "computeDistributionAfterNSteps: incompatible dimensions (distribution: 1x%d vs matrix: %dx%d)\n",
+                initialDistribution.cols, transitionMatrix.rows, transitionMatrix.cols);
+        return -1;
+    }
+
+    // Cas n = 0 : la distribution reste inchangée
+    if (n == 0) {
+        if (createResultMatrix(result, 1, initialDistribution.cols) < 0) return -1;
+        return copyMatrix(initialDistribution, result);
+    }
+
+    // Calcul de M^n
+    t_matrix matrixPowerN;
+    if (powerMatrix(transitionMatrix, n, &matrixPowerN) < 0) {
+        fprintf(stderr, "computeDistributionAfterNSteps: failed to compute matrix power\n");
+        return -1;
+    }
+
+    // Multiplication : distribution * M^n
+    if (multiplyMatrices(initialDistribution, matrixPowerN, result) < 0) {
+        fprintf(stderr, "computeDistributionAfterNSteps: failed to multiply matrices\n");
+        freeMatrix(&matrixPowerN);
+        return -1;
+    }
+
+    freeMatrix(&matrixPowerN);
+    return 1;
+}
+
+void displayDistributionAfterNSteps(t_matrix transitionMatrix,
+                                     t_matrix initialDistribution,
+                                     int n) {
+    printf("=== Computing Distribution After %d Steps ===\n", n);
+    printf("Initial distribution:\n");
+    displayMatrix(initialDistribution);
+
+    t_matrix resultDistribution;
+    int status = computeDistributionAfterNSteps(transitionMatrix, initialDistribution, n, &resultDistribution);
+
+    if (status < 0) {
+        printf("Error: Failed to compute distribution after %d steps\n", n);
+        return;
+    }
+
+    printf("Distribution after %d steps:\n", n);
+    displayMatrix(resultDistribution);
+
+    freeMatrix(&resultDistribution);
+}
+
+t_matrix getDistributionForState(t_matrix matrix, int stateId) {
+    // Validation des paramètres
+    if (!isValidMatrix(matrix)) {
+        fprintf(stderr, "getDistributionForState: invalid matrix\n");
+        return createEmptyMatrix();
+    }
+
+    // Vérification que stateId est dans la plage valide (1-based)
+    if (stateId < 1 || stateId > matrix.rows) {
+        fprintf(stderr, "getDistributionForState: state ID %d out of bounds (valid range: 1-%d)\n",
+                stateId, matrix.rows);
+        return createEmptyMatrix();
+    }
+
+    // Création d'une matrice ligne (1 x cols)
+    t_matrix distribution = createMatrix(1, matrix.cols);
+    if (!isValidMatrix(distribution)) {
+        fprintf(stderr, "getDistributionForState: failed to create distribution matrix\n");
+        return createEmptyMatrix();
+    }
+
+    // Conversion de l'ID 1-based en index 0-based
+    int rowIndex = stateId - 1;
+
+    // Copie de la ligne correspondante dans la nouvelle matrice
+    for (int j = 0; j < matrix.cols; j++) {
+        distribution.data[0][j] = matrix.data[rowIndex][j];
+    }
+
+    return distribution;
 }
