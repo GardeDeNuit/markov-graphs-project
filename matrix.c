@@ -192,9 +192,9 @@ static void displayMatrixData(t_matrix m) {
         for (int i = 0; i < m.rows; ++i) {
             for (int j = 0; j < m.cols; ++j) {
                 if (m.data[i][j] == 0.0) {
-                    //printf("0; ");
+                    printf("0 ");
                 } else {
-                    printf("%.4f\t", m.data[i][j]);
+                    printf("%.4f", m.data[i][j]);
                 }
             }
             printf("\n");
