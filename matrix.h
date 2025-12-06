@@ -145,26 +145,33 @@ t_matrix buildSubMatrix(t_matrix matrix, t_partition part, int class_id);
 t_matrix buildSubMatrixFromVertices(t_matrix matrix, int* vertices, int vertexCount);
 
 /**
- * @brief compute the smallest n such that diffMatrices(M^n, M^(n-1)) < epsilon.
- *        The resulting matrix M^n is returned through result.
+ * @brief Calcule le plus petit n tel que diffMatrices(M^n, M^(n-1)) < epsilon, à partir d'une distribution initiale.
+ *        La matrice convergée M^n est renvoyée via limitDistribution.
  *
- * @param matrix Input square matrix.
- * @param epsilon Convergence value.
- * @param result Pointer receiving the converged matrix (M^n).
- * @param maxIter Maximum iteration limit (example: 2000).
- * @return int The exponent n where convergence occurs, or -1 if no convergence.
+ * @param matrix Matrice de transition carrée (Markov), de taille NxN.
+ * @param initialDistribution Distribution initiale (vecteur ligne 1xN), utilisée comme point de départ.
+ * @param epsilon Seuil de convergence strictement positif.
+ * @param limitDistribution Pointeur recevant la matrice M^n à convergence (allouée en interne).
+ * @param maxIter Limite maximale d'itérations (exemple: 2000). Arrête le calcul en absence de convergence.
+ * @return int L’exposant n où la convergence est atteinte, ou -1 si la convergence n’est pas atteinte.
  */
-int computeConvergedMatrixPower(t_matrix matrix, double epsilon, t_matrix *result, int maxIter);
-
+int computeConvergedMatrixPower(t_matrix matrix,
+                                t_matrix initialDistribution,
+                                double epsilon,
+                                t_matrix *limitDistribution,
+                                int maxIter);
 /**
- * @brief Display the matrix obtained by computing the converged power of the input matrix.
+ * @brief Affiche la matrice obtenue via le calcul de la puissance convergée de \`matrix\`, depuis une distribution initiale.
  *
- * @param matrix Input square matrix.
- * @param epsilon Convergence value.
- * @param maxIter Maximum iteration limit (example: 2000).
+ * @param matrix Matrice de transition carrée (Markov), de taille NxN.
+ * @param initialDistribution Distribution initiale (vecteur ligne 1xN), utilisée comme point de départ.
+ * @param epsilon Seuil de convergence strictement positif.
+ * @param maxIter Limite maximale d'itérations (exemple: 2000).
  */
-void dipslayConvergedMatrixPower(t_matrix matrix, double epsilon, int maxIter);
-
+void displayConvergedMatrixPower(t_matrix matrix,
+                                 t_matrix initialDistribution,
+                                 double epsilon,
+                                 int maxIter);
 /**
  * @brief Compute and display stationary distributions for all classes.
  *

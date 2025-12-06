@@ -191,77 +191,16 @@ static void displayMatrixData(t_matrix m) {
     } else {
         for (int i = 0; i < m.rows; ++i) {
             for (int j = 0; j < m.cols; ++j) {
-                printf("%6.2f ", m.data[i][j]);
+                if (m.data[i][j] == 0.0) {
+                    //printf("0; ");
+                } else {
+                    printf("%.4f\t", m.data[i][j]);
+                }
             }
             printf("\n");
         }
     }
     printf("\n");
-}
-
-/**
- * @brief Computes the stationary distribution of a single class.
- *
- * @param M Full adjacency matrix.
- * @param part Partition of the graph.
- * @param hasse Hasse diagram (persistent / transient info).
- * @param class Pointer to the class to process.
- * @param epsilon Convergence threshold.
- * @return the stationary distribution of that class.
- *         Zero matrix if the class is transient.
- */
-static t_matrix computeStationaryDistributionForOneClass(
-        t_matrix M,
-        t_partition part,
-        t_hasse_diagram hasse,
-        t_class *class,
-        double epsilon) {
-    if (class == NULL) {
-        fprintf(stderr, "computeStationaryDistributionForOneClass: NULL class pointer\n");
-        return createMatrix(0, 0);
-    }
-
-    int class_id = class->id;
-
-    // Construction de la sous-matrice correspondant à la classe
-    t_matrix subM = buildSubMatrix(M, part, class_id);
-    if (!isValidMatrix(subM)) {
-        fprintf(stderr, "Error: Failed to build submatrix for class %d\n", class_id);
-        return createMatrix(0, 0);
-    }
-
-    int size = subM.rows;
-
-    // Cas ou la class n'est pas persistante
-    if (!isPersistantClass(hasse, class_id)) {
-        // La distribution est stationnaire
-        // On doit renvoyer une matrice nulle
-        t_matrix zero = createMatrix(1, size);
-        freeMatrix(&subM);
-        return zero;
-    }
-
-    // La matrice est persistante.
-    t_matrix limit;
-    int n = computeConvergedMatrixPower(subM, epsilon, &limit, 2000);
-
-    if (n == -1) {
-        printf("Class %s did not converge.\n", getID(class_id));
-        t_matrix zero = createMatrix(1, size);
-        freeMatrix(&subM);
-        return zero;
-    }
-
-    // Extraction de la distribution stationnaire
-    // La distribution stationnaire est la première ligne de la matrice limite
-    t_matrix distrib = createMatrix(1, size);
-    for (int j = 0; j < size; j++)
-        distrib.data[0][j] = limit.data[0][j];
-
-    freeMatrix(&limit);
-    freeMatrix(&subM);
-
-    return distrib;
 }
 
 /* public functions =================================================== */
@@ -481,88 +420,72 @@ t_matrix buildSubMatrixFromVertices(t_matrix matrix, int* vertices, int vertexCo
     return sub_m;
 }
 
-int computeConvergedMatrixPower(t_matrix matrix, double epsilon, t_matrix *limitMatrix, int maxIter) {
+int computeConvergedMatrixPower(t_matrix matrix,
+                                t_matrix initialDistribution,
+                                double epsilon,
+                                t_matrix *limitDistribution,
+                                int maxIter) {
+
     if (!isValidMatrix(matrix) || matrix.rows != matrix.cols) {
-        fprintf(stderr, "computeConvergedMatrixPower: invalid input matrix\n");
+        fprintf(stderr, "computeConvergedMatrixPower: invalid matrix\n");
+        return -1;
+    }
+    if (!isValidMatrix(initialDistribution) || initialDistribution.rows != 1 || initialDistribution.cols != matrix.cols) {
+        fprintf(stderr, "computeConvergedMatrixPower: invalid initial distribution (must be 1x%d)\n", matrix.cols);
+        return -1;
+    }
+    if (limitDistribution == NULL) {
+        fprintf(stderr, "computeConvergedMatrixPower: NULL limit distribution pointer\n");
         return -1;
     }
 
-    // Calculer M^1
-    // C'est égal à la matrice elle-même donc on initialise prev avec matrix
     t_matrix prev;
-    if (createResultMatrix(&prev, matrix.rows, matrix.rows) < 0) return -1;
-    copyMatrix(matrix, &prev);
+    if (createResultMatrix(&prev, 1, matrix.cols) < 0) return -1;
+    if (copyMatrix(initialDistribution, &prev) < 0) {
+        freeMatrix(&prev);
+        return -1;
+    }
 
     t_matrix curr;
 
-    for (int n = 2; n <= maxIter; n++) {
-        // Calculer M^n
-        if (powerMatrix(matrix, n, &curr) < 0) {
+    for (int n = 1; n <= maxIter; n++) {
+        if (multiplyMatrices(prev, matrix, &curr) < 0) {
             freeMatrix(&prev);
             return -1;
         }
 
-        // Calculer la différence entre M^(n-1) et M^n (diff(M^(n-1), M^n))
-        double diff = diffMatrices(prev, curr);
+        printf("n = %d:\n", n);
+        displayMatrix(curr); // afficher chaque distribution intermédiaire
 
+        double diff = diffMatrices(prev, curr);
         if (diff < epsilon) {
-            // La convergence est atteinte
-            // Retourner n et la matrice M^n
-            *limitMatrix = curr;
+            *limitDistribution = curr;
             freeMatrix(&prev);
             return n;
         }
 
-        // Libérer prev pour préparer pour la prochaine itération
         freeMatrix(&prev);
         prev = curr;
     }
 
-    // Pas de convergence atteinte dans le nombre maximal d'itérations
-    // Libérer la dernière matrice calculée
-    // et retourner -1
     freeMatrix(&prev);
     return -1;
 }
 
-void dipslayConvergedMatrixPower(t_matrix matrix, double epsilon, int maxIter) {
-    t_matrix limitMatrix;
-    int n = computeConvergedMatrixPower(matrix, epsilon, &limitMatrix, maxIter);
+void displayConvergedMatrixPower(t_matrix matrix,
+                                 t_matrix initialDistribution,
+                                 double epsilon,
+                                 int maxIter) {
+    t_matrix limitDistribution;
+    printf("Initial distribution, n = 0:\n");
+    displayMatrix(initialDistribution);
+    int n = computeConvergedMatrixPower(matrix, initialDistribution, epsilon, &limitDistribution, maxIter);
     if (n < 0) {
         printf("No convergence within %d iterations.\n", maxIter);
     } else {
-        printf("Converged at n = %d with limit matrix:\n", n);
-        displayMatrix(limitMatrix);
-        freeMatrix(&limitMatrix);
-    }
-}
-
-/**
- * @brief Compute and display stationary distributions for all classes.
- *
- * @param M Full adjacency matrix.
- * @param part Graph partition.
- * @param hasse Hasse diagram.
- * @param epsilon Convergence threshold.
- */
-void computeStationaryDistributionsForAllClasses(
-        t_matrix M,
-        t_partition part,
-        t_hasse_diagram hasse,
-        double epsilon)
-{
-    t_class *class = part.classes;
-
-    while (class != NULL) {
-        displayClass(class);
-        printf(": \n");
-
-        t_matrix distrib = computeStationaryDistributionForOneClass(M, part, hasse, class, epsilon);
-
-        displayMatrix(distrib);
-        freeMatrix(&distrib);
-
-        class = class->next;
+        printf("Converged at n = %d with limit distribution:\n", n);
+        displayMatrix(limitDistribution);
+        freeMatrix(&limitDistribution);
     }
 }
 
