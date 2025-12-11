@@ -20,7 +20,8 @@ int main(void) {
     displayMatrix(matrix);
 
     t_matrix distribution = createMatrix(1, matrix.cols);
-    setMatrixValue(&distribution, 0, 0, 1.0);
+    setMatrixValue(&distribution, 0, 0, 0.5);
+    setMatrixValue(&distribution, 0, 1, 0.5);
 
     displayConvergedMatrixPower(matrix, distribution, 0.0001,2000);
 

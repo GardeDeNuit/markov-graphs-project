@@ -194,7 +194,7 @@ static void displayMatrixData(t_matrix m) {
                 if (m.data[i][j] == 0.0) {
                     printf("0 ");
                 } else {
-                    printf("%.4f", m.data[i][j]);
+                    printf("%.4f ", m.data[i][j]);
                 }
             }
             printf("\n");
