@@ -15,25 +15,14 @@ int main(void) {
     /* Importation du graphe */
     t_graph graph = importGraphFromFile(matrix_file);
 
-    exportGraphToMermaidFile(graph, mermaid_file);
-    t_hasse_diagram hasse = createHasseDiagram(graph);
-    exportHasseDiagramToMermaidFile(hasse, hasse_file);
-
-    /*
     t_matrix matrix;
     createMatrixFromGraph(graph, &matrix);
     displayMatrix(matrix);
-    int* array = NULL;
-    array = (int*)malloc(sizeof(int)*6);
-    array[0] = 1;
-    array[1] = 4;
-    array[2] = 11;
-    array[3] = 18;
-    array[4] = 26;
-    array[5] = 27;
-    t_matrix sub_matrix = buildSubMatrixFromVertices(matrix, array, 6);
-    displayMatrix(sub_matrix);
-    */
+
+    t_matrix distribution = createMatrix(1, matrix.cols);
+    setMatrixValue(&distribution, 0, 0, 1.0);
+
+    displayConvergedMatrixPower(matrix, distribution, 0.0001,2000);
 
     return 1;
 }
